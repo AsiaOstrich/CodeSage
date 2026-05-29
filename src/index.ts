@@ -14,6 +14,7 @@ export {
   NODE_TABLES,
   REL_TABLES,
 } from "./graph-db/schema.js";
+export { writeFragment } from "./graph-db/writer.js";
 export type {
   GraphRow,
   GraphNode,
@@ -30,12 +31,27 @@ export type {
 } from "./graph-db/types.js";
 
 // --- code-graph (tree-sitter → Function/Class/Module + CALLS) ---
-export { extractCodeGraph, indexFile, writeFragment } from "./code-graph/index.js";
+export { extractCodeGraph, indexFile } from "./code-graph/index.js";
 export type {
   ExtractOptions,
   IndexResult,
   SupportedLanguage,
 } from "./code-graph/index.js";
+
+// --- knowledge-graph (XSPEC/DEC markdown → Spec/Decision + IMPACTS) ---
+export {
+  XspecDecKnowledgeSource,
+  parseKnowledgeDoc,
+  classifyRef,
+  indexKnowledgeDocs,
+} from "./knowledge-graph/index.js";
+export type {
+  KnowledgeDoc,
+  KnowledgeNodeKind,
+  ImpactNode,
+  ImpactAnalysisResult,
+} from "./knowledge-graph/index.js";
+export { impactAnalysis } from "./knowledge-graph/query.js";
 
 // --- adapters (pluggable interfaces + generic defaults) ---
 export {

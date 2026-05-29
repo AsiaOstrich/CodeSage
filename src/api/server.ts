@@ -1,17 +1,32 @@
 import { Hono } from "hono";
 
+import type { GraphConnection } from "../graph-db/connection.js";
 import { healthRoute } from "./routes/health.js";
+import { impactRoute } from "./routes/impact.js";
+
+export interface ServerOptions {
+  /**
+   * Graph connection backing the data routes. When omitted, only the
+   * (self-contained) health route is mounted — graph routes need a live DB.
+   */
+  connection?: GraphConnection;
+}
 
 /**
  * Build the CodeSage Hono application.
  *
- * Phase 1 mounts only the health route (AC-1). Later phases add
- * `/graph/query`, `/graph/impact-analysis`, `/graph/ingest`.
+ * Always mounts the health route (AC-1). When a `connection` is provided, the
+ * graph data routes are mounted too: `/graph/impact-analysis` (Phase 3).
+ * Future phases add `/graph/query`, `/graph/ingest`.
  */
-export function createServer(): Hono {
+export function createServer(options: ServerOptions = {}): Hono {
   const app = new Hono();
 
   app.route("/", healthRoute());
+
+  if (options.connection) {
+    app.route("/", impactRoute(options.connection));
+  }
 
   return app;
 }

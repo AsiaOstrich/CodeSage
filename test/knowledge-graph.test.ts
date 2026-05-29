@@ -1,0 +1,123 @@
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { GraphConnection } from "../src/graph-db/connection.js";
+import { initSchema } from "../src/graph-db/schema.js";
+import { classifyRef } from "../src/knowledge-graph/linker.js";
+import { parseKnowledgeDoc, indexKnowledgeDocs } from "../src/knowledge-graph/parser.js";
+import { impactAnalysis } from "../src/knowledge-graph/query.js";
+import { createServer } from "../src/api/server.js";
+
+const XSPEC_205 = `---
+id: XSPEC-205
+title: Agent/Role Spec SDD Variant
+status: Implemented
+---
+# XSPEC-205
+Builds on [[DEC-062]] harness engineering.
+`;
+
+const DEC_062 = `---
+id: DEC-062
+title: Harness Engineering 2026 Adoption
+date: 2026-05-07
+---
+# DEC-062
+Impacts [[XSPEC-205]] and others.
+`;
+
+const DEC_069 = `---
+id: DEC-069
+title: CodeSage Architecture
+date: 2026-05-27
+---
+# DEC-069
+Supersedes [[DEC-062]].
+`;
+
+const CORPUS = [{ content: XSPEC_205 }, { content: DEC_062 }, { content: DEC_069 }];
+
+describe("KnowledgeGraph parser/linker (Phase 3)", () => {
+  it("classifies XSPEC → Spec and DEC/ADR → Decision", () => {
+    expect(classifyRef("XSPEC-205")).toEqual({ kind: "Spec", id: "XSPEC-205" });
+    expect(classifyRef("[[DEC-062]]")).toEqual({ kind: "Decision", id: "DEC-062" });
+    expect(classifyRef("ADR-001 something")).toEqual({ kind: "Decision", id: "ADR-001" });
+    expect(classifyRef("no id here")).toBeNull();
+  });
+
+  it("parses a spec doc with refs", () => {
+    const parsed = parseKnowledgeDoc({ content: XSPEC_205 });
+    expect(parsed?.kind).toBe("Spec");
+    expect(parsed?.id).toBe("XSPEC-205");
+    expect(parsed?.title).toBe("Agent/Role Spec SDD Variant");
+    expect(parsed?.refs).toEqual([{ kind: "Decision", id: "DEC-062" }]);
+  });
+
+  it("derives id from fallbackId when front-matter omits it", () => {
+    const parsed = parseKnowledgeDoc({ content: "# notes\nsee [[XSPEC-1]]", fallbackId: "specs/DEC-099-foo.md" });
+    expect(parsed?.kind).toBe("Decision");
+    expect(parsed?.id).toBe("DEC-099");
+  });
+});
+
+describe("KnowledgeGraph ingest + AC-3 impact analysis", () => {
+  // Single shared connection (beforeAll/afterAll). Re-opening a Kuzu DB per
+  // test under the forks pool can leave native handles that stall worker
+  // teardown; all tests here use the same idempotent corpus so one DB is safe.
+  let dir: string;
+  let conn: GraphConnection;
+
+  beforeAll(async () => {
+    dir = mkdtempSync(join(tmpdir(), "codesage-kg-"));
+    conn = GraphConnection.open(join(dir, "graph.db"));
+    await initSchema(conn);
+  });
+
+  afterAll(() => {
+    // Do not await conn.close(): Kuzu's native close can stall the forks worker
+    // teardown (see code-graph.test). The temp DB is reclaimed on worker exit.
+    rmSync(dir, { recursive: true, force: true });
+  });
+
+  it("indexes Spec/Decision nodes with IMPACTS + SUPERSEDES edges", async () => {
+    const res = await indexKnowledgeDocs(conn, CORPUS);
+    expect(res.specs).toBe(1);
+    expect(res.decisions).toBe(2);
+    expect(res.impacts).toBeGreaterThanOrEqual(1);
+    expect(res.supersedes).toBe(1);
+  });
+
+  // AC-3: impact analysis on a spec returns an impact chain with ≥1 Decision.
+  it("AC-3: impactAnalysis(XSPEC-205, 3) returns the decision impact chain", async () => {
+    await indexKnowledgeDocs(conn, CORPUS);
+    const result = await impactAnalysis(conn, "XSPEC-205", 3);
+
+    expect(result.nodeId).toBe("XSPEC-205");
+    expect(result.decisions.length).toBeGreaterThanOrEqual(1);
+
+    const ids = result.decisions.map((d) => d.id).sort();
+    expect(ids).toContain("DEC-062"); // direct IMPACTS
+    expect(ids).toContain("DEC-069"); // via SUPERSEDES → DEC-062 → XSPEC-205
+
+    const direct = result.decisions.find((d) => d.id === "DEC-062");
+    expect(direct?.via).toBe("direct");
+  });
+
+  it("serves AC-3 over POST /graph/impact-analysis", async () => {
+    await indexKnowledgeDocs(conn, CORPUS);
+    const app = createServer({ connection: conn });
+
+    const res = await app.fetch(
+      new Request("http://localhost/graph/impact-analysis", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ nodeId: "XSPEC-205", maxHops: 3 }),
+      }),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { decisions: Array<{ id: string }> };
+    expect(body.decisions.length).toBeGreaterThanOrEqual(1);
+  });
+});
