@@ -29,6 +29,14 @@ export type {
   DocNode,
 } from "./graph-db/types.js";
 
+// --- code-graph (tree-sitter → Function/Class/Module + CALLS) ---
+export { extractCodeGraph, indexFile, writeFragment } from "./code-graph/index.js";
+export type {
+  ExtractOptions,
+  IndexResult,
+  SupportedLanguage,
+} from "./code-graph/index.js";
+
 // --- adapters (pluggable interfaces + generic defaults) ---
 export {
   type KnowledgeSource,
