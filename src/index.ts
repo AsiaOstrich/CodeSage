@@ -32,12 +32,16 @@ export type {
 
 // --- code-graph (tree-sitter → Function/Class/Module + CALLS) ---
 export { extractCodeGraph, extractProject, indexFile, indexProject } from "./code-graph/index.js";
+export { callers, callees, callChain } from "./code-graph/index.js";
 export type {
   ExtractOptions,
   IndexResult,
   ProjectFile,
   ProjectIndexResult,
   SupportedLanguage,
+  CallDirection,
+  CallNode,
+  CallChainResult,
 } from "./code-graph/index.js";
 
 // --- knowledge-graph (XSPEC/DEC markdown → Spec/Decision + IMPACTS) ---

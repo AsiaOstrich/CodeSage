@@ -1,0 +1,84 @@
+{
+  "$schema-note": "XSPEC-237 D4 PoC brownfield tasks. Each task modifies the fixture; groundTruthCallers lists the functions that MUST be updated for the change to be correct (the 'missed call-site' denominator). shouldCallChainHelp=false marks negative controls (pure-internal edits where injecting the call chain should NOT improve the outcome).",
+  "fixture": "fixture/",
+  "callGraph": {
+    "formatMoney": ["lineTotal"],
+    "addTax": ["lineTotal"],
+    "lineTotal": ["cartTotal"],
+    "cartTotal": ["placeOrder"],
+    "checkStock": ["placeOrder"],
+    "reserve": ["placeOrder"]
+  },
+  "tasks": [
+    {
+      "id": "T1",
+      "type": "signature-change",
+      "targetSymbol": "addTax",
+      "targetFile": "src/money.ts",
+      "description": "Add an optional third parameter `round: boolean = true` to addTax(cents, rate). When false, return the untruncated taxed value. Update every caller accordingly.",
+      "groundTruthCallers": ["lineTotal"],
+      "callersCrossFile": true,
+      "shouldCallChainHelp": true
+    },
+    {
+      "id": "T2",
+      "type": "signature-change",
+      "targetSymbol": "lineTotal",
+      "targetFile": "src/pricing.ts",
+      "description": "Add a required parameter `currency: string` to lineTotal(item, currency) and use it in place of the hard-coded '$'. Update every caller (they must thread a currency through).",
+      "groundTruthCallers": ["cartTotal"],
+      "callersCrossFile": false,
+      "shouldCallChainHelp": true
+    },
+    {
+      "id": "T3",
+      "type": "return-type-change",
+      "targetSymbol": "checkStock",
+      "targetFile": "src/inventory.ts",
+      "description": "Change checkStock to return `{ ok: boolean; available: number }` instead of a bare boolean. Update every caller to read `.ok`.",
+      "groundTruthCallers": ["placeOrder"],
+      "callersCrossFile": true,
+      "shouldCallChainHelp": true
+    },
+    {
+      "id": "T4",
+      "type": "rename",
+      "targetSymbol": "formatMoney",
+      "targetFile": "src/money.ts",
+      "description": "Rename formatMoney to formatCurrency across the codebase, including the import and every call site.",
+      "groundTruthCallers": ["lineTotal"],
+      "callersCrossFile": true,
+      "shouldCallChainHelp": true
+    },
+    {
+      "id": "T5",
+      "type": "signature-change",
+      "targetSymbol": "cartTotal",
+      "targetFile": "src/pricing.ts",
+      "description": "Add an optional parameter `opts?: { discount?: number }` to cartTotal(items, opts) and apply the discount. Update every caller.",
+      "groundTruthCallers": ["placeOrder"],
+      "callersCrossFile": true,
+      "shouldCallChainHelp": true
+    },
+    {
+      "id": "T6",
+      "type": "internal-refactor",
+      "targetSymbol": "formatMoney",
+      "targetFile": "src/money.ts",
+      "description": "Change formatMoney's internal rounding to use Intl.NumberFormat, keeping the exact same signature and observable output. No caller should need to change.",
+      "groundTruthCallers": [],
+      "callersCrossFile": false,
+      "shouldCallChainHelp": false
+    },
+    {
+      "id": "T7",
+      "type": "internal-refactor",
+      "targetSymbol": "reserve",
+      "targetFile": "src/inventory.ts",
+      "description": "Refactor reserve's internals to guard against negative stock (clamp at 0), keeping the same signature and behaviour for valid inputs. No caller should need to change.",
+      "groundTruthCallers": [],
+      "callersCrossFile": false,
+      "shouldCallChainHelp": false
+    }
+  ]
+}

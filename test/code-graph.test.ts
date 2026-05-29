@@ -7,6 +7,8 @@ import { GraphConnection } from "../src/graph-db/connection.js";
 import { initSchema } from "../src/graph-db/schema.js";
 import { extractCodeGraph, extractProject } from "../src/code-graph/extractor.js";
 import { indexFile, indexProject } from "../src/code-graph/indexer.js";
+import { callers, callees, callChain } from "../src/code-graph/query.js";
+import { createServer } from "../src/api/server.js";
 
 const TS_SAMPLE = `
 import { foo } from "./foo";
@@ -142,10 +144,50 @@ describe("CodeGraph indexer + AC-2 query", () => {
     ]);
     expect(result.calls).toBeGreaterThanOrEqual(1);
 
-    const callers = await conn.query(
+    const callerRows = await conn.query(
       "MATCH (c:Function)-[:CALLS]->(f:Function {name: 'helperX'}) RETURN c.name AS name",
     );
-    expect(callers.map((r) => r.name)).toContain("executeX");
+    expect(callerRows.map((r) => r.name)).toContain("executeX");
+  });
+
+  // P2: call-chain queries (callers/callees, transitive depth) + REST route.
+  it("P2: callers/callees resolve transitively across files", async () => {
+    await indexProject(conn, [
+      { path: "cc/a.ts", source: "import {bFn} from './b';\nexport function aFn() { return bFn(); }" },
+      { path: "cc/b.ts", source: "import {cFn} from './c';\nexport function bFn() { return cFn(); }" },
+      { path: "cc/c.ts", source: "export function cFn() { return 1; }" },
+    ]);
+
+    const directCallers = await callers(conn, "cFn", 1);
+    expect(directCallers.map((n) => n.name)).toEqual(["bFn"]);
+
+    const transitiveCallers = await callers(conn, "cFn", 2);
+    expect(transitiveCallers.map((n) => n.name).sort()).toEqual(["aFn", "bFn"]);
+
+    const transitiveCallees = await callees(conn, "aFn", 2);
+    expect(transitiveCallees.map((n) => n.name).sort()).toEqual(["bFn", "cFn"]);
+
+    const chain = await callChain(conn, "cFn", "callers", 2);
+    expect(chain.callees).toEqual([]);
+    expect(chain.callers.length).toBe(2);
+  });
+
+  it("P2: serves POST /graph/call-chain", async () => {
+    await indexProject(conn, [
+      { path: "rc/a.ts", source: "import {rcB} from './b';\nexport function rcA() { return rcB(); }" },
+      { path: "rc/b.ts", source: "export function rcB() { return 1; }" },
+    ]);
+    const app = createServer({ connection: conn });
+    const res = await app.fetch(
+      new Request("http://localhost/graph/call-chain", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ symbol: "rcB", direction: "callers", depth: 1 }),
+      }),
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { callers: Array<{ name: string }> };
+    expect(body.callers.map((c) => c.name)).toContain("rcA");
   });
 });
 
