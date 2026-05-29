@@ -31,10 +31,12 @@ export type {
 } from "./graph-db/types.js";
 
 // --- code-graph (tree-sitter → Function/Class/Module + CALLS) ---
-export { extractCodeGraph, indexFile } from "./code-graph/index.js";
+export { extractCodeGraph, extractProject, indexFile, indexProject } from "./code-graph/index.js";
 export type {
   ExtractOptions,
   IndexResult,
+  ProjectFile,
+  ProjectIndexResult,
   SupportedLanguage,
 } from "./code-graph/index.js";
 

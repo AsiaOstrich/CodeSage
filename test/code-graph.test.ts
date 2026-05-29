@@ -5,8 +5,8 @@ import { join } from "node:path";
 
 import { GraphConnection } from "../src/graph-db/connection.js";
 import { initSchema } from "../src/graph-db/schema.js";
-import { extractCodeGraph } from "../src/code-graph/extractor.js";
-import { indexFile } from "../src/code-graph/indexer.js";
+import { extractCodeGraph, extractProject } from "../src/code-graph/extractor.js";
+import { indexFile, indexProject } from "../src/code-graph/indexer.js";
 
 const TS_SAMPLE = `
 import { foo } from "./foo";
@@ -131,5 +131,62 @@ describe("CodeGraph indexer + AC-2 query", () => {
       `MATCH (f:Function)-[r:CALLS]->(:Function) WHERE f.file = 'src/b.ts' RETURN count(r) AS c`,
     );
     expect(Number(callCount[0]?.c)).toBe(2);
+  });
+
+  // P1: indexProject resolves a cross-file call, so "callers of X" works even
+  // when the caller lives in another file (the call-chain the D4 PoC needs).
+  it("P1: indexProject finds a cross-file caller", async () => {
+    const result = await indexProject(conn, [
+      { path: "proj/a.ts", source: "import { helperX } from './b';\nexport function executeX(n: number) { return helperX(n); }" },
+      { path: "proj/b.ts", source: "export function helperX(n: number) { return n + 1; }" },
+    ]);
+    expect(result.calls).toBeGreaterThanOrEqual(1);
+
+    const callers = await conn.query(
+      "MATCH (c:Function)-[:CALLS]->(f:Function {name: 'helperX'}) RETURN c.name AS name",
+    );
+    expect(callers.map((r) => r.name)).toContain("executeX");
+  });
+});
+
+describe("CodeGraph cross-file resolution (P1)", () => {
+  it("resolves a call to a function defined in another file", () => {
+    const { fragment, calls } = extractProject([
+      { path: "a.ts", source: "export function execute(x: number) { return helper(x); }" },
+      { path: "b.ts", source: "export function helper(n: number) { return n + 1; }" },
+    ]);
+    expect(calls).toBe(1);
+    const callEdge = fragment.edges.find((e) => e.label === "CALLS");
+    expect(callEdge?.from).toBe("a.ts#execute");
+    expect(callEdge?.to).toBe("b.ts#helper"); // resolved across files
+  });
+
+  it("prefers a same-file definition (lexical shadowing) over a cross-file one", () => {
+    const { fragment } = extractProject([
+      { path: "c.ts", source: "export function helper() { return 1; }\nexport function run() { return helper(); }" },
+      { path: "d.ts", source: "export function helper() { return 2; }" },
+    ]);
+    const runCall = fragment.edges.find((e) => e.label === "CALLS" && e.from === "c.ts#run");
+    expect(runCall?.to).toBe("c.ts#helper"); // local wins, not d.ts#helper
+  });
+
+  it("skips an ambiguous call (name defined in >1 file, no local) and counts it", () => {
+    const result = extractProject([
+      { path: "e.ts", source: "export function helper() { return 1; }" },
+      { path: "f.ts", source: "export function helper() { return 2; }" },
+      { path: "g.ts", source: "export function caller() { return helper(); }" },
+    ]);
+    expect(result.ambiguous).toBeGreaterThanOrEqual(1);
+    const callerEdge = result.fragment.edges.find(
+      (e) => e.label === "CALLS" && e.from === "g.ts#caller",
+    );
+    expect(callerEdge).toBeUndefined(); // ambiguous → not resolved
+  });
+
+  it("counts an unresolved call (callee name unknown across the repo)", () => {
+    const result = extractProject([
+      { path: "h.ts", source: "export function caller() { return missingFn(); }" },
+    ]);
+    expect(result.unresolved).toBeGreaterThanOrEqual(1);
   });
 });

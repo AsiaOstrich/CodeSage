@@ -33,3 +33,25 @@ export interface IndexResult {
   /** Number of resolved CALLS edges written. */
   calls: number;
 }
+
+/** One source file in a repository-level index. */
+export interface ProjectFile {
+  /** Repo-relative path; used as Module id + Function/Class id prefix. */
+  path: string;
+  source: string;
+  /** Override language detection (inferred from `path` extension when omitted). */
+  language?: SupportedLanguage;
+}
+
+/** Summary of what {@link indexProject} wrote (cross-file CALLS resolution). */
+export interface ProjectIndexResult {
+  files: number;
+  functions: number;
+  classes: number;
+  /** Resolved CALLS edges (includes cross-file). */
+  calls: number;
+  /** Calls whose callee name matched >1 function across the repo (skipped). */
+  ambiguous: number;
+  /** Calls whose callee name matched no known function (skipped). */
+  unresolved: number;
+}

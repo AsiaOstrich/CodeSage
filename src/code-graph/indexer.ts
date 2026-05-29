@@ -8,8 +8,8 @@
 
 import type { GraphConnection } from "../graph-db/connection.js";
 import { writeFragment } from "../graph-db/writer.js";
-import { extractCodeGraph } from "./extractor.js";
-import type { ExtractOptions, IndexResult } from "./types.js";
+import { extractCodeGraph, extractProject } from "./extractor.js";
+import type { ExtractOptions, IndexResult, ProjectFile, ProjectIndexResult } from "./types.js";
 
 /**
  * Extract a file's code graph and write it to the connection.
@@ -30,4 +30,19 @@ export async function indexFile(
     classes: fragment.nodes.filter((n) => n.label === "Class").length,
     calls: fragment.edges.filter((e) => e.label === "CALLS").length,
   };
+}
+
+/**
+ * Index a whole repository in one pass, resolving CALLS **across files**
+ * (P1 — required for finding callers/callees that live in other files).
+ *
+ * @returns counts including cross-file calls and skipped ambiguous/unresolved.
+ */
+export async function indexProject(
+  conn: GraphConnection,
+  files: ProjectFile[],
+): Promise<ProjectIndexResult> {
+  const { fragment, ...stats } = extractProject(files);
+  await writeFragment(conn, fragment);
+  return stats;
 }
