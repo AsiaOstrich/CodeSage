@@ -47,31 +47,40 @@ node poc/d4/run-experiment.mjs        # MODE=mock smoke (default)
 N=5 node poc/d4/run-experiment.mjs    # 5 runs/arm/task
 ```
 
-The Builder call is behind a pluggable adapter:
+The Builder call is behind a pluggable `BUILDER_CMD` seam, so the runner stays
+VibeOps-agnostic (DEC-070). The full MODE=real chain — workspace prep → invoke
+`BUILDER_CMD` → parse output (files[]/patches[]) → apply → run fixture tests →
+metrics → aggregate → GO/NO-GO — is **validated end-to-end** with a stub builder.
 
-- **MODE=mock** (default) — a NEUTRAL synthetic builder returning the *same*
-  result for both arms. It validates the harness plumbing end-to-end and, by
-  construction, yields no signal (tie → NO-GO). The numbers are synthetic and
-  clearly banner-labelled; this is **not** a measurement.
-- **MODE=real** — the brownfield→BuilderInput adapter is **done** (`brownfield-adapter.mjs`,
-  verified by `verify-adapter.mjs`): each task produces a schema-valid
-  BuilderInput + a designer spec artifact that inlines the existing code,
-  acceptance criteria, and (treatment only) the CodeSage call-chain. MODE=real
-  now runs the adapter and stages `builder-input.json` + `artifacts/` to a temp
-  dir. Two prerequisites remain to actually execute:
-  1. **An LLM provider key** (none in the dev sandbox: no ANTHROPIC/XAI/GROQ/
-     OPENROUTER key, no local ollama). The real run costs tokens.
-  2. **Workspace wiring** — copy the fixture into a VibeOps project, run
-     `vibeops run builder --input builder-input.json`, apply the returned
-     patches, run the fixture tests, and diff touched files vs
-     `groundTruthCallers` for the metrics. (`VIBEOPS_DIR` + key.)
+- **MODE=mock** (default) — a NEUTRAL synthetic builder (same result both arms):
+  validates orchestration; no signal by construction (tie → NO-GO). Synthetic,
+  banner-labelled; not a measurement.
+- **MODE=real + fake-builder** — validates the *whole real chain* without an LLM.
+  The fake touches the target + ground-truth caller files (tests stay green):
+  ```bash
+  MODE=real BUILDER_CMD="node poc/d4/fake-builder.mjs" node poc/d4/run-experiment.mjs
+  # → workspace prep, output apply, fixture vitest (firstPassRate=1), metrics, NO-GO
+  ```
+- **MODE=real + real Builder (subscription OAuth, no paid key)** — swap in the
+  VibeOps wrapper. The Builder LLM runs on your Claude subscription, not API $:
+  ```bash
+  claude setup-token                          # needs a Claude subscription
+  export CLAUDE_CODE_OAUTH_TOKEN=<token>       # do NOT set ANTHROPIC_API_KEY
+  MODE=real VIBEOPS_DIR=../vibeops \
+    BUILDER_CMD="node poc/d4/vibeops-builder-cmd.mjs" \
+    node poc/d4/run-experiment.mjs
+  ```
+  `vibeops-builder-cmd.mjs` injects a `claude-agent-sdk` provider (no apiKeyEnv →
+  SDK uses the OAuth token) and runs `cli.ts run builder`. It is a **starting
+  point not yet validated** (no token in the dev sandbox); its inline `VERIFY:`
+  notes flag the VibeOps-internal assumptions to confirm on the first real run.
 
+Also: build + validate all per-task control/treatment BuilderInputs (no LLM):
 ```bash
-# build all per-task control/treatment BuilderInputs and validate them (no LLM)
 node poc/d4/verify-adapter.mjs
 ```
 
-> Note: `call_chain_context.callers` (who calls the symbol) is distinct from
+> `call_chain_context.callers` (who calls the symbol) is distinct from
 > `groundTruthCallers` (who must be *updated*). For internal-refactor negative
 > controls they differ on purpose — that gap is the discriminating signal.
 
