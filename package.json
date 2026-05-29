@@ -1,0 +1,50 @@
+{
+  "name": "@asiaostrich/codesage",
+  "version": "0.1.0",
+  "description": "Open-source code + knowledge graph memory engine (SAGE + CodeGraph). AsiaOstrich is only a reference consumer.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "dev": "node --experimental-strip-types --watch src/api/dev-server.ts"
+  },
+  "keywords": [
+    "code-graph",
+    "knowledge-graph",
+    "kuzu",
+    "graph-memory",
+    "sage",
+    "tree-sitter"
+  ],
+  "dependencies": {
+    "hono": "^4.6.0",
+    "kuzu": "^0.11.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.0",
+    "vitest": "^4.0.0"
+  }
+}

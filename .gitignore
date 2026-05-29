@@ -1,0 +1,16 @@
+node_modules/
+dist/
+
+# Kuzu graph databases & state
+*.db
+*.db.wal
+*.db.lock
+.kuzu/
+
+# Build / runtime artifacts
+artifacts/
+coverage/
+
+# Editor / OS
+.DS_Store
+*.log

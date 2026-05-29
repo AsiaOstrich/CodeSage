@@ -1,0 +1,54 @@
+/**
+ * CodeSage — open-source code + knowledge graph memory engine.
+ *
+ * Library-mode entry point. AsiaOstrich (XSPEC/DEC/org/VibeOps) is only a
+ * reference consumer; nothing here depends on it.
+ */
+
+// --- graph-db (Kuzu abstraction) ---
+export { GraphConnection } from "./graph-db/connection.js";
+export {
+  initSchema,
+  NODE_TABLE_DDL,
+  REL_TABLE_DDL,
+  NODE_TABLES,
+  REL_TABLES,
+} from "./graph-db/schema.js";
+export type {
+  GraphRow,
+  GraphNode,
+  GraphEdge,
+  GraphFragment,
+  NodeLabel,
+  RelLabel,
+  FunctionNode,
+  ClassNode,
+  ModuleNode,
+  SpecNode,
+  DecisionNode,
+  DocNode,
+} from "./graph-db/types.js";
+
+// --- adapters (pluggable interfaces + generic defaults) ---
+export {
+  type KnowledgeSource,
+  type MarkdownDoc,
+  MarkdownKnowledgeSource,
+  parseFrontMatter,
+  extractRefs,
+  type IsolationModel,
+  type IsolationContext,
+  SingleRepoIsolation,
+  OrgProjectIsolation,
+  type SignalSource,
+  type FeedbackEvent,
+  type FeedbackSignal,
+  GitHistorySignalSource,
+  TestExitCodeSignalSource,
+} from "./adapters/index.js";
+
+// --- api (REST / MCP server) ---
+export { createServer } from "./api/server.js";
+
+// --- embedded mode (in-process, zero HTTP) ---
+export { EmbeddedClient } from "../clients/node-sdk/embedded.js";

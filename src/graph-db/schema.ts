@@ -1,0 +1,79 @@
+import type { GraphConnection } from "./connection.js";
+
+/**
+ * Kuzu schema for CodeSage (XSPEC-237 §"Kuzu 核心 Schema").
+ *
+ * NODE tables: Function, Class, Module, Spec, Decision (+ generic Doc).
+ * REL  tables: CALLS, IMPORTS, DEFINES, IMPLEMENTS, IMPACTS, SUPERSEDES
+ *              (+ generic REFERENCES for the default markdown knowledge source).
+ */
+
+/** NODE TABLE DDL statements, in dependency order. */
+export const NODE_TABLE_DDL: readonly string[] = [
+  `CREATE NODE TABLE Function(id STRING, name STRING, file STRING, start_line INT64, confidence DOUBLE, PRIMARY KEY(id))`,
+  `CREATE NODE TABLE Class(id STRING, name STRING, file STRING, PRIMARY KEY(id))`,
+  `CREATE NODE TABLE Module(id STRING, path STRING, PRIMARY KEY(id))`,
+  `CREATE NODE TABLE Spec(id STRING, title STRING, status STRING, confidence DOUBLE, PRIMARY KEY(id))`,
+  `CREATE NODE TABLE Decision(id STRING, title STRING, date STRING, confidence DOUBLE, PRIMARY KEY(id))`,
+  `CREATE NODE TABLE Doc(id STRING, title STRING, status STRING, confidence DOUBLE, PRIMARY KEY(id))`,
+];
+
+/** REL TABLE DDL statements. Must run after their endpoint NODE tables. */
+export const REL_TABLE_DDL: readonly string[] = [
+  `CREATE REL TABLE CALLS(FROM Function TO Function, call_count INT64)`,
+  `CREATE REL TABLE IMPORTS(FROM Module TO Module)`,
+  `CREATE REL TABLE DEFINES(FROM Module TO Function)`,
+  `CREATE REL TABLE IMPLEMENTS(FROM Function TO Spec)`,
+  `CREATE REL TABLE IMPACTS(FROM Decision TO Spec)`,
+  `CREATE REL TABLE SUPERSEDES(FROM Decision TO Decision)`,
+  `CREATE REL TABLE REFERENCES(FROM Doc TO Doc)`,
+];
+
+/** Logical names of every table this schema creates (for assertions/tests). */
+export const NODE_TABLES = [
+  "Function",
+  "Class",
+  "Module",
+  "Spec",
+  "Decision",
+  "Doc",
+] as const;
+
+export const REL_TABLES = [
+  "CALLS",
+  "IMPORTS",
+  "DEFINES",
+  "IMPLEMENTS",
+  "IMPACTS",
+  "SUPERSEDES",
+  "REFERENCES",
+] as const;
+
+/**
+ * Treat a DDL error as benign iff it is an "already exists" error.
+ *
+ * Kuzu 0.11.x does not support `IF NOT EXISTS` on every version, so we make
+ * `initSchema` idempotent by swallowing duplicate-table errors instead.
+ */
+function isAlreadyExistsError(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err);
+  return /already exists/i.test(message);
+}
+
+/**
+ * Idempotently create all NODE and REL tables.
+ *
+ * Safe to call repeatedly: existing tables are skipped. Satisfies AC-1
+ * (schema can be created / re-confirmed on init).
+ */
+export async function initSchema(conn: GraphConnection): Promise<void> {
+  for (const ddl of [...NODE_TABLE_DDL, ...REL_TABLE_DDL]) {
+    try {
+      await conn.execute(ddl);
+    } catch (err) {
+      if (!isAlreadyExistsError(err)) {
+        throw err;
+      }
+    }
+  }
+}
