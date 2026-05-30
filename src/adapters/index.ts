@@ -10,6 +10,7 @@ export {
   type IsolationContext,
   SingleRepoIsolation,
   OrgProjectIsolation,
+  GitBranchIsolation,
 } from "./isolation.js";
 export {
   type SignalSource,

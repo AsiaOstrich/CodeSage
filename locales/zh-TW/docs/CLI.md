@@ -1,7 +1,7 @@
 ---
 source: docs/CLI.md
-source_version: 0.1.0
-translation_version: 0.1.0
+source_version: 0.2.0
+translation_version: 0.2.0
 last_synced: 2026-05-30
 status: complete
 ---
@@ -19,24 +19,30 @@ codesage <command> [args] [options]
 
 ## 圖譜資料庫位置
 
-每個命令都讀寫同一個 Kuzu 資料庫，路徑依序解析自：
+每個命令都讀寫同一個 Kuzu 資料庫，路徑依以下優先序解析（XSPEC-245）：
 
-1. 明確的環境變數 `CODESAGE_DB`，否則
-2. 目前工作目錄下的 `./.codesage/graph.db`。
+1. 環境變數 `CODESAGE_DB`（完整路徑，最高），否則
+2. `--graph <name>` → `./.codesage/<name>.db`，否則
+3. `--isolation git-branch`（或環境變數 `CODESAGE_ISOLATION=git-branch`）→ 每分支一個
+   `<git-common-dir>/codesage/<branch>.db`，否則
+4. 預設單一 `./.codesage/graph.db`。
 
 目錄會在需要時建立，且每次開啟都會確保 schema 存在（冪等），因此首次 `index` 也能在空 repo 上運作。
+見下方[分支 / 專案隔離](#分支--專案隔離)。
 
 ## 全域選項
 
 | 選項 | 說明 |
 |------|------|
 | `--json` | 輸出原始 JSON，而非人類可讀摘要 |
+| `--graph <name>` | 使用 `./.codesage/<name>.db`——顯式命名的專案圖譜 |
+| `--isolation <mode>` | `single`（預設）或 `git-branch`（每分支一張圖）|
 | `-h`、`--help` | 顯示用法 |
 | `-v`、`--version` | 顯示套件版本 |
 
 ## 命令
 
-### `index <dir> [--docs]`
+### `index <dir> [--docs] [--clean]`
 
 遞迴將 `<dir>` 下的原始碼索引進**程式碼圖譜**（tree-sitter → `Function` / `Class` /
 `Module` 節點 + 跨檔 `CALLS`）。加上 `--docs` 時，也會把 `*.md` 索引進**知識圖譜**
@@ -44,10 +50,13 @@ codesage <command> [args] [options]
 
 - 程式碼副檔名：`.ts .tsx .js .jsx .mts .cts .mjs .cjs`（排除 `.d.ts`）。
 - 略過的目錄：`node_modules`、`dist`、`.codesage`、`.git`、`coverage`。
+- `--clean`：索引前先清空圖譜資料。索引本是 upsert（MERGE）從不刪除，程式裡被移除的節點
+  會殘留；`--clean` 從頭重建以清掉它。
 
 ```bash
 codesage index ./src
 codesage index . --docs
+codesage index ./src --clean   # 重建，清掉已刪除的節點
 ```
 
 輸出計數：`files`、`functions`、`classes`、`calls`，以及 `ambiguous`（被呼叫名稱比對到
@@ -113,6 +122,16 @@ codesage top Function --limit 20
 codesage top Decision --json
 ```
 
+### `gc [--dry-run]`
+
+回收已不存在分支的 per-branch 圖譜。檢查 `<git-common-dir>/codesage/`；當沒有任何現存
+本地分支對應到 `<name>` 時，`<name>.db` 即為孤兒。`--dry-run` 只列不刪。非 git repo 時為 no-op。
+
+```bash
+codesage gc --dry-run
+codesage gc
+```
+
 ### `serve [--port 3000]`
 
 在圖譜資料庫上執行 REST server（Hono）。路由掛載於 `/graph/*` 加上 `GET /health`。
@@ -130,6 +149,21 @@ codesage serve --port 3000
 ```bash
 codesage mcp
 ```
+
+## 分支 / 專案隔離
+
+預設所有命令共用同一個 `./.codesage/graph.db`。由於 `.codesage/` 被 gitignore 且待在工作樹，
+**`git checkout` 不會換掉它**——不同分支共用同一張圖。三種隔離方式：
+
+1. **`--isolation git-branch`**（或在 shell 設一次 `CODESAGE_ISOLATION=git-branch`）：每個分支
+   各自 `<git-common-dir>/codesage/<branch>.db`，切分支後仍在、不污染工作樹。分支名會加 hash
+   後綴消毒，故 `feature/x` 與 `feature-x` 永不碰撞。用 `codesage gc` 回收已刪分支的圖。
+2. **`--graph <name>`**：顯式、與 git 無關的專案圖——適合 detached HEAD 或分支命名隨意時。
+3. **`git worktree`**：每個分支各自 checkout 到獨立目錄，天然各有 `./.codesage/graph.db`——
+   零旗標、最乾淨,當分支對應長期獨立專案時最合適。
+
+> **MCP 注意**：MCP server 在啟動時綁定一張圖（路徑記到 stderr），**不會**跟著之後的
+> `git checkout`——要切換需重連/重啟 server（或啟動時帶 `--graph` / `CODESAGE_ISOLATION`）。
 
 ## CI 範例
 

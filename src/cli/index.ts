@@ -11,10 +11,10 @@ import { createServer as createHttpServer } from "node:http";
 import { Readable } from "node:stream";
 
 import pkg from "../../package.json" with { type: "json" };
-import { openGraph, resolveDbPath } from "../graph-db/open.js";
+import { openGraph, resolveDbPath, type GraphLocationOptions, type IsolationMode } from "../graph-db/open.js";
 import { createServer } from "../api/server.js";
 import { startMcpStdio } from "../mcp/serve-stdio.js";
-import { cmdIndex, cmdCallers, cmdCallees, cmdImpact, cmdFeedback, cmdTop } from "./run.js";
+import { cmdIndex, cmdCallers, cmdCallees, cmdImpact, cmdFeedback, cmdTop, cmdGc, type GcResult } from "./run.js";
 import type { ConfidenceLabel } from "../sage/index.js";
 
 const HELP = `codesage — code + knowledge graph memory CLI
@@ -22,23 +22,29 @@ const HELP = `codesage — code + knowledge graph memory CLI
 Usage: codesage <command> [args] [options]
 
 Commands:
-  index <dir> [--docs]            Index source (.ts/.js) into the code graph;
-                                  --docs also indexes .md into the knowledge graph
+  index <dir> [--docs] [--clean]  Index source (.ts/.js) into the code graph;
+                                  --docs also indexes .md; --clean drops the
+                                  graph first (prunes deleted nodes)
   callers <symbol> [--depth N]    Functions that (transitively) call <symbol>
   callees <symbol> [--depth N]    Functions that <symbol> (transitively) calls
   impact <spec-id> [--max-hops N] Decisions in a spec's impact chain
   feedback <type> <node-id> [--label L]
                                   Evolve confidence (type: test_fail|test_pass|human_fix)
   top <label> [--limit N]         Highest-confidence nodes (label: Function|Spec|Decision|Doc)
+  gc [--dry-run]                  Remove per-branch graphs for deleted branches
   serve [--port 3000]             Run the REST server (routes under /graph/*)
   mcp                             Run the MCP server over stdio (for coding assistants)
 
 Options:
-  --json            Output raw JSON
-  -h, --help        Show this help
-  -v, --version     Show version
+  --json                Output raw JSON
+  --graph <name>        Use graph ./.codesage/<name>.db (explicit project graph)
+  --isolation <mode>    single (default) | git-branch (per-branch graph)
+  -h, --help            Show this help
+  -v, --version         Show version
 
-Graph DB: CODESAGE_DB env (default ./.codesage/graph.db)`;
+Graph DB selection (highest first): CODESAGE_DB env > --graph > --isolation
+git-branch (per current branch) > default ./.codesage/graph.db.
+Env CODESAGE_ISOLATION=git-branch enables per-branch isolation without the flag.`;
 
 const VERSION = (pkg as { version: string }).version;
 
@@ -67,6 +73,10 @@ async function main(): Promise<void> {
       limit: { type: "string" },
       label: { type: "string" },
       port: { type: "string" },
+      graph: { type: "string" },
+      isolation: { type: "string" },
+      clean: { type: "boolean" },
+      "dry-run": { type: "boolean" },
     },
   });
 
@@ -77,10 +87,31 @@ async function main(): Promise<void> {
 
   const num = (v: string | undefined, d: number): number => (v != null ? Number(v) : d);
 
+  // Graph location knobs shared by every command that opens a graph.
+  if (values.isolation && values.isolation !== "single" && values.isolation !== "git-branch") {
+    throw new Error(`--isolation must be "single" or "git-branch" (got "${values.isolation}")`);
+  }
+  const loc: GraphLocationOptions = {
+    graph: values.graph,
+    isolation: values.isolation as IsolationMode | undefined,
+  };
+
+  // gc inspects the filesystem, not a graph connection.
+  if (cmd === "gc") {
+    const r = cmdGc({ dryRun: values["dry-run"] });
+    out(r, values.json, (d) => {
+      const g = d as GcResult;
+      if (g.dir == null) return "gc: not a git repository (per-branch graphs only)";
+      const verb = g.deleted ? "removed" : g.orphans.length ? "orphans (dry-run)" : "orphans";
+      return `${verb} in ${g.dir}:\n${g.orphans.length ? g.orphans.map((o) => `  ${o}`).join("\n") : "  (none)"}`;
+    });
+    return;
+  }
+
   // Long-running commands manage their own lifecycle (no exit).
-  if (cmd === "mcp") return startMcpStdio();
+  if (cmd === "mcp") return startMcpStdio(resolveDbPath(loc));
   if (cmd === "serve") {
-    const conn = await openGraph();
+    const conn = await openGraph(loc);
     const app = createServer({ connection: conn });
     const port = num(values.port, 3000);
     createHttpServer(async (req, res) => {
@@ -98,17 +129,17 @@ async function main(): Promise<void> {
       response.headers.forEach((value, key) => res.setHeader(key, value));
       res.end(await response.text());
     }).listen(port, () => {
-      process.stdout.write(`CodeSage REST on http://localhost:${port} (db: ${resolveDbPath()})\n`);
+      process.stdout.write(`CodeSage REST on http://localhost:${port} (db: ${resolveDbPath(loc)})\n`);
     });
     return;
   }
 
   // Data commands: open graph, run, print, exit.
-  const conn = await openGraph();
+  const conn = await openGraph(loc);
   switch (cmd) {
     case "index": {
       if (!a1) throw new Error("index requires a <dir>");
-      const r = await cmdIndex(conn, { dir: a1, docs: values.docs });
+      const r = await cmdIndex(conn, { dir: a1, docs: values.docs, clean: values.clean });
       out(r, values.json, (d) => {
         const s = d as Awaited<ReturnType<typeof cmdIndex>>;
         const k = s.knowledge ? `\nknowledge: ${s.knowledge.specs} specs, ${s.knowledge.decisions} decisions, ${s.knowledge.impacts} impacts, ${s.knowledge.supersedes} supersedes` : "";

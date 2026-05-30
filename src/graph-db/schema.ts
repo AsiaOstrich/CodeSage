@@ -77,3 +77,17 @@ export async function initSchema(conn: GraphConnection): Promise<void> {
     }
   }
 }
+
+/**
+ * Delete all data while keeping the tables (XSPEC-245 `--clean`).
+ *
+ * `DETACH DELETE` removes each node together with its relationships, so a
+ * subsequent re-index rebuilds the graph from scratch — pruning nodes that no
+ * longer exist on the current branch (the MERGE-based writer never deletes).
+ * Safe to call on a freshly-initialised (empty) DB.
+ */
+export async function clearGraph(conn: GraphConnection): Promise<void> {
+  for (const label of NODE_TABLES) {
+    await conn.execute(`MATCH (n:${label}) DETACH DELETE n`);
+  }
+}

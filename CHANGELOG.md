@@ -34,7 +34,13 @@ on embedded Kuzu, usable as a library, REST service, MCP server, or CLI.
   `codesage-mcp`) exposing `index_code`, `index_docs`, `call_chain`,
   `impact_analysis`, `ingest_feedback`.
 - **cli** — standalone `codesage` CLI: `index`, `callers`, `callees`, `impact`,
-  `feedback`, `top`, `serve`, `mcp` (`--json` / `--help` / `--version`).
+  `feedback`, `top`, `gc`, `serve`, `mcp` (`--json` / `--help` / `--version`).
+- **branch / project isolation** (XSPEC-245) — `--isolation git-branch` (or env
+  `CODESAGE_ISOLATION=git-branch`) keeps a per-branch graph under
+  `<git-common-dir>/codesage/<branch>.db`; `--graph <name>` selects an explicit
+  named graph; `index --clean` rebuilds to prune deleted nodes; `gc` removes
+  graphs of deleted branches. New `GitBranchIsolation` adapter + `clearGraph`,
+  `resolveDbPath`, `openGraph` exports. Default stays single-graph (unchanged).
 - **embedded** — `EmbeddedClient` for in-process, zero-HTTP use.
 - Tri-lingual documentation (English / 繁體中文 / 简体中文): README, CLI, MCP,
   API, CONTRIBUTING.

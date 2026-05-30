@@ -5,7 +5,12 @@
  * the entry point handles I/O, formatting and process lifecycle.
  */
 
+import { existsSync, readdirSync, rmSync } from "node:fs";
+import { join } from "node:path";
+
 import type { GraphConnection } from "../graph-db/connection.js";
+import { clearGraph } from "../graph-db/schema.js";
+import { gitBranchCodesageDir, listBranches, sanitizeBranch } from "../graph-db/git-branch.js";
 import { indexProject, callers, callees, type CallNode } from "../code-graph/index.js";
 import { indexKnowledgeDocs, impactAnalysis } from "../knowledge-graph/index.js";
 import { applyFeedback, feedbackForEventType, topByConfidence, type ConfidenceLabel } from "../sage/index.js";
@@ -18,11 +23,12 @@ export interface IndexResultSummary {
   knowledge?: { specs: number; decisions: number; impacts: number; supersedes: number };
 }
 
-/** `codesage index <dir> [--docs]` — index code (always) + knowledge docs (--docs). */
+/** `codesage index <dir> [--docs] [--clean]` — index code (always) + knowledge docs (--docs). */
 export async function cmdIndex(
   conn: GraphConnection,
-  opts: { dir: string; docs?: boolean },
+  opts: { dir: string; docs?: boolean; clean?: boolean },
 ): Promise<IndexResultSummary> {
+  if (opts.clean) await clearGraph(conn); // drop existing data so deleted nodes are pruned
   const codeFiles = walkFiles(opts.dir, CODE_EXTS);
   const code = await indexProject(conn, codeFiles); // { files, functions, classes, calls, ambiguous, unresolved }
   const result: IndexResultSummary = { code };
@@ -67,4 +73,38 @@ export function cmdFeedback(
 /** `codesage top <label> [--limit N]`. */
 export function cmdTop(conn: GraphConnection, label: ConfidenceLabel, limit = 10) {
   return topByConfidence(conn, label, limit);
+}
+
+export interface GcResult {
+  /** The branch-graph dir inspected, or null when not a git repo. */
+  dir: string | null;
+  /** Orphan graph files (branches that no longer exist). */
+  orphans: string[];
+  /** True when orphans were actually removed (i.e. not a dry run). */
+  deleted: boolean;
+}
+
+/**
+ * `codesage gc [--dry-run]` — remove per-branch graphs whose branch no longer
+ * exists (XSPEC-245). Inspects `<git-common-dir>/codesage/`; a `<name>.db` is an
+ * orphan when no current local branch sanitizes to `<name>`. Also clears the
+ * sibling `<name>.db.wal` left by Kuzu.
+ */
+export function cmdGc(opts: { cwd?: string; dryRun?: boolean }): GcResult {
+  const cwd = opts.cwd ?? process.cwd();
+  const dir = gitBranchCodesageDir(cwd);
+  if (!dir || !existsSync(dir)) return { dir, orphans: [], deleted: false };
+
+  const valid = new Set(listBranches(cwd).map((b) => `${sanitizeBranch(b)}.db`));
+  const orphans = readdirSync(dir)
+    .filter((f) => f.endsWith(".db"))
+    .filter((f) => !valid.has(f));
+
+  if (!opts.dryRun) {
+    for (const f of orphans) {
+      rmSync(join(dir, f), { recursive: true, force: true });
+      rmSync(join(dir, `${f}.wal`), { recursive: true, force: true });
+    }
+  }
+  return { dir, orphans, deleted: !opts.dryRun && orphans.length > 0 };
 }

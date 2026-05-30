@@ -9,11 +9,14 @@
 export { GraphConnection } from "./graph-db/connection.js";
 export {
   initSchema,
+  clearGraph,
   NODE_TABLE_DDL,
   REL_TABLE_DDL,
   NODE_TABLES,
   REL_TABLES,
 } from "./graph-db/schema.js";
+export { resolveDbPath, openGraph } from "./graph-db/open.js";
+export type { IsolationMode, GraphLocationOptions } from "./graph-db/open.js";
 export { writeFragment } from "./graph-db/writer.js";
 export type {
   GraphRow,
@@ -89,6 +92,7 @@ export {
   type IsolationContext,
   SingleRepoIsolation,
   OrgProjectIsolation,
+  GitBranchIsolation,
   type SignalSource,
   type FeedbackEvent,
   type FeedbackSignal,

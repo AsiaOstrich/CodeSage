@@ -12,25 +12,32 @@ codesage <command> [args] [options]
 
 ## Graph DB location
 
-Every command reads/writes one Kuzu database. Its path is resolved from:
+Every command reads/writes one Kuzu database. Its path is resolved in this
+priority order (XSPEC-245):
 
-1. an explicit env var `CODESAGE_DB`, otherwise
-2. `./.codesage/graph.db` under the current working directory.
+1. env `CODESAGE_DB` (a full path; highest), else
+2. `--graph <name>` → `./.codesage/<name>.db`, else
+3. `--isolation git-branch` (or env `CODESAGE_ISOLATION=git-branch`) → a
+   per-branch DB `<git-common-dir>/codesage/<branch>.db`, else
+4. the default single `./.codesage/graph.db`.
 
 The directory is created on demand and the schema is ensured on every open
-(idempotent), so the first `index` works against an empty repo.
+(idempotent), so the first `index` works against an empty repo. See
+[Branch / project isolation](#branch--project-isolation) below.
 
 ## Global options
 
 | Option | Description |
 |--------|-------------|
 | `--json` | Emit raw JSON instead of the human-readable summary |
+| `--graph <name>` | Use `./.codesage/<name>.db` — an explicitly named project graph |
+| `--isolation <mode>` | `single` (default) or `git-branch` (one graph per branch) |
 | `-h`, `--help` | Show usage |
 | `-v`, `--version` | Show the package version |
 
 ## Commands
 
-### `index <dir> [--docs]`
+### `index <dir> [--docs] [--clean]`
 
 Recursively indexes source files under `<dir>` into the **code graph**
 (tree-sitter → `Function` / `Class` / `Module` nodes + cross-file `CALLS`).
@@ -39,10 +46,14 @@ With `--docs`, also indexes `*.md` files into the **knowledge graph**
 
 - Code extensions: `.ts .tsx .js .jsx .mts .cts .mjs .cjs` (`.d.ts` excluded).
 - Skipped directories: `node_modules`, `dist`, `.codesage`, `.git`, `coverage`.
+- `--clean`: drop the graph's data before indexing. Indexing is otherwise an
+  upsert (MERGE) that never deletes, so a node removed from the code lingers;
+  `--clean` rebuilds from scratch to prune it.
 
 ```bash
 codesage index ./src
 codesage index . --docs
+codesage index ./src --clean   # rebuild, pruning deleted nodes
 ```
 
 Output counts: `files`, `functions`, `classes`, `calls`, plus `ambiguous`
@@ -113,6 +124,18 @@ codesage top Function --limit 20
 codesage top Decision --json
 ```
 
+### `gc [--dry-run]`
+
+Garbage-collect per-branch graphs whose branch no longer exists. Inspects
+`<git-common-dir>/codesage/`; a `<name>.db` is an orphan when no current local
+branch maps to `<name>`. `--dry-run` lists without deleting. No-op outside a git
+repo.
+
+```bash
+codesage gc --dry-run
+codesage gc
+```
+
 ### `serve [--port 3000]`
 
 Run the REST server (Hono) over the graph DB. Routes are mounted under
@@ -131,6 +154,27 @@ Run the MCP server over stdio for coding assistants. Identical to the
 ```bash
 codesage mcp
 ```
+
+## Branch / project isolation
+
+By default all commands share one `./.codesage/graph.db`. Because `.codesage/`
+is gitignored and lives in the work tree, **`git checkout` does not swap it** —
+different branches share the same graph. Three ways to isolate:
+
+1. **`--isolation git-branch`** (or set `CODESAGE_ISOLATION=git-branch` once in
+   your shell): each branch gets its own `<git-common-dir>/codesage/<branch>.db`,
+   which survives checkouts and never pollutes the work tree. Branch names are
+   sanitized with a hash suffix so `feature/x` and `feature-x` never collide.
+   Use `codesage gc` to reclaim graphs of deleted branches.
+2. **`--graph <name>`**: an explicit, git-independent project graph — handy for
+   a detached HEAD or when branch names are ad-hoc.
+3. **`git worktree`**: each branch checked out in its own directory naturally
+   gets its own `./.codesage/graph.db` — zero flags, the cleanest isolation when
+   branches map to long-lived separate projects.
+
+> **MCP caveat**: the MCP server binds to one graph at startup (it logs the path
+> to stderr). It does **not** follow a later `git checkout` — reconnect/restart
+> the server (or launch it with `--graph` / `CODESAGE_ISOLATION`) to switch.
 
 ## CI example
 

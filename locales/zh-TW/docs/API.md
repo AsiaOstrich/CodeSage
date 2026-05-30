@@ -1,7 +1,7 @@
 ---
 source: docs/API.md
-source_version: 0.1.0
-translation_version: 0.1.0
+source_version: 0.2.0
+translation_version: 0.2.0
 last_synced: 2026-05-30
 status: complete
 ---
@@ -31,6 +31,19 @@ import { /* ... */ } from "@asiaostrich/codesage";
 
 冪等建立 6 個節點表 + 7 個關係表。另外匯出：`NODE_TABLE_DDL`、`REL_TABLE_DDL`、
 `NODE_TABLES`、`REL_TABLES`。
+
+### `clearGraph(conn): Promise<void>`
+
+清空所有資料但保留表（對每個節點表 `DETACH DELETE`），讓重新索引可清掉已不存在的節點
+（MERGE writer 從不刪除）。
+
+### `resolveDbPath(loc?)` / `openGraph(loc?)`
+
+解析圖譜 DB 路徑 / 開啟它（建目錄 + schema）。`loc` 為字串路徑或
+`GraphLocationOptions = { dbPath?, graph?, isolation?, cwd? }`。優先序：
+`dbPath` > env `CODESAGE_DB` > `graph` 名 → `.codesage/<name>.db` >
+`isolation: "git-branch"`（依當前分支）> 預設 `.codesage/graph.db`。
+`IsolationMode = "single" | "git-branch"`。
 
 ### `writeFragment(conn, fragment: GraphFragment): Promise<void>`
 
@@ -144,7 +157,8 @@ AsiaOstrich **參考** adapter：XSPEC → `Spec`、DEC/ADR → `Decision`、
   `extractRefs`；型別 `MarkdownDoc`。
 - **隔離模型** — `IsolationModel.dbPath(ctx?: IsolationContext): string`。
   `SingleRepoIsolation`（預設，單一 `graph.db`）| `OrgProjectIsolation`
-  （`org-{orgId}/project-{projectId}/graph.db`）。
+  （`org-{orgId}/project-{projectId}/graph.db`）| `GitBranchIsolation`（XSPEC-245；
+  每分支 `<git-common-dir>/codesage/<branch>.db`，附 fallback 模型）。
 - **訊號來源** — `SignalSource → FeedbackEvent[]`；`GitHistorySignalSource`、
   `TestExitCodeSignalSource`。型別 `FeedbackEvent`、`FeedbackSignal`。
 

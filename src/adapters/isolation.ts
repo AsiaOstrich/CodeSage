@@ -1,4 +1,6 @@
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+
+import { gitBranchDbPath } from "../graph-db/git-branch.js";
 
 /**
  * Pluggable isolation-model adapter (XSPEC-237 §"Core vs Adapter 邊界" #2).
@@ -61,5 +63,28 @@ export class OrgProjectIsolation implements IsolationModel {
   /** Path to the shared, read-only public knowledge DB. */
   sharedDbPath(): string {
     return join(this.baseDir, "shared", "public-knowledge.db");
+  }
+}
+
+/**
+ * Opt-in git-branch isolation (XSPEC-245).
+ *
+ * Resolves the graph DB to `<git-common-dir>/codesage/<sanitized-branch>.db`,
+ * so each branch (often a distinct project) gets its own graph that survives
+ * `git checkout`. Falls back to the supplied model when `cwd` is not a git repo
+ * or HEAD is detached. Context is ignored (branch is detected from `cwd`).
+ */
+export class GitBranchIsolation implements IsolationModel {
+  /**
+   * @param cwd      Directory used to detect the current branch (default cwd).
+   * @param fallback Model used when not a git repo / detached HEAD.
+   */
+  constructor(
+    private readonly cwd: string = ".",
+    private readonly fallback: IsolationModel = new SingleRepoIsolation(),
+  ) {}
+
+  dbPath(ctx?: IsolationContext): string {
+    return gitBranchDbPath(resolve(this.cwd)) ?? this.fallback.dbPath(ctx);
   }
 }

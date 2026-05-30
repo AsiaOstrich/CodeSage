@@ -26,6 +26,19 @@ The package is ESM-first with a CJS build; types are bundled. Runtime: Node ≥ 
 Idempotently creates the 6 node + 7 relationship tables. Also exported:
 `NODE_TABLE_DDL`, `REL_TABLE_DDL`, `NODE_TABLES`, `REL_TABLES`.
 
+### `clearGraph(conn): Promise<void>`
+
+Delete all data while keeping the tables (`DETACH DELETE` per node table), so a
+re-index prunes nodes no longer present (the MERGE writer never deletes).
+
+### `resolveDbPath(loc?)` / `openGraph(loc?)`
+
+Resolve a graph DB path / open it (creating dirs + schema). `loc` is a string
+path or `GraphLocationOptions = { dbPath?, graph?, isolation?, cwd? }`.
+Priority: `dbPath` > env `CODESAGE_DB` > `graph` name → `.codesage/<name>.db` >
+`isolation: "git-branch"` (per current branch) > default `.codesage/graph.db`.
+`IsolationMode = "single" | "git-branch"`.
+
 ### `writeFragment(conn, fragment: GraphFragment): Promise<void>`
 
 Persist a provider-agnostic `{ nodes, edges }` fragment.
@@ -143,7 +156,8 @@ Constants `STEP`, `MIN_CONFIDENCE`, `MAX_CONFIDENCE` are exported.
   `extractRefs`; type `MarkdownDoc`.
 - **Isolation model** — `IsolationModel.dbPath(ctx?: IsolationContext): string`.
   `SingleRepoIsolation` (default, one `graph.db`) | `OrgProjectIsolation`
-  (`org-{orgId}/project-{projectId}/graph.db`).
+  (`org-{orgId}/project-{projectId}/graph.db`) | `GitBranchIsolation` (XSPEC-245;
+  per-branch `<git-common-dir>/codesage/<branch>.db`, with a fallback model).
 - **Signal source** — `SignalSource → FeedbackEvent[]`; `GitHistorySignalSource`,
   `TestExitCodeSignalSource`. Types `FeedbackEvent`, `FeedbackSignal`.
 
