@@ -65,12 +65,35 @@ export function parseKnowledgeDoc(doc: KnowledgeDoc): ParsedKnowledgeDoc | null 
   const { kind, id } = classified;
   const title = fields.title ?? firstHeading(body) ?? id;
 
-  const refs = extractRefs(body)
-    .map(classifyRef)
-    .filter((r): r is { kind: KnowledgeNodeKind; id: string } => r !== null && r.id !== id);
+  // Refs come from two sources: inline [[ref]] links in the body, and the
+  // relationship front-matter fields defined by the knowledge-graph-memory
+  // standard. The kind-based edge rule in ingest() turns each typed ref into
+  // the right directed edge, so listing a ref under any relationship field
+  // yields the correct IMPACTS/SUPERSEDES edge.
+  const seen = new Set<string>();
+  const refs: Array<{ kind: KnowledgeNodeKind; id: string }> = [];
+  const addRef = (raw: string): void => {
+    const c = classifyRef(raw);
+    if (!c || c.id === id) return;
+    const key = `${c.kind}:${c.id}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    refs.push(c);
+  };
+
+  for (const ref of extractRefs(body)) addRef(ref);
+
+  for (const field of RELATIONSHIP_FIELDS) {
+    const value = fields[field];
+    if (!value) continue;
+    for (const m of value.matchAll(/\b(?:XSPEC|SPEC|DEC|ADR)-\d+/gi)) addRef(m[0]);
+  }
 
   return { id, kind, title, refs, node: makeNode(kind, id, title, fields) };
 }
+
+/** Front-matter relationship fields (knowledge-graph-memory standard §"Quick Reference"). */
+const RELATIONSHIP_FIELDS = ["related", "impacts", "impacted_by", "supersedes", "implements"] as const;
 
 /**
  * AsiaOstrich reference knowledge source: XSPEC/DEC markdown → graph fragment.

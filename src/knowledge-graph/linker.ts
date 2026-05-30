@@ -8,7 +8,9 @@
 
 import type { KnowledgeNodeKind } from "./types.js";
 
-const ID_RE = /(XSPEC|DEC|ADR)-\d+/i;
+// XSPEC before SPEC so "XSPEC-237" matches as XSPEC, not SPEC; \b avoids
+// matching SPEC inside another word. XSPEC/SPEC → Spec; DEC/ADR → Decision.
+const ID_RE = /\b(XSPEC|SPEC|DEC|ADR)-\d+/i;
 
 export interface ClassifiedRef {
   kind: KnowledgeNodeKind;
@@ -25,6 +27,6 @@ export function classifyRef(ref: string): ClassifiedRef | null {
   if (!match) return null;
   const id = match[0].toUpperCase();
   const prefix = (match[1] ?? "").toUpperCase();
-  const kind: KnowledgeNodeKind = prefix === "XSPEC" ? "Spec" : "Decision";
+  const kind: KnowledgeNodeKind = prefix === "XSPEC" || prefix === "SPEC" ? "Spec" : "Decision";
   return { kind, id };
 }

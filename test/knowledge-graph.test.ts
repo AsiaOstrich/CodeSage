@@ -60,6 +60,18 @@ describe("KnowledgeGraph parser/linker (Phase 3)", () => {
     expect(parsed?.kind).toBe("Decision");
     expect(parsed?.id).toBe("DEC-099");
   });
+
+  it("reads relationship front-matter fields (related/impacts/impacted_by/supersedes)", () => {
+    const spec = parseKnowledgeDoc({
+      content: "---\nid: XSPEC-555\nimpacted_by: [DEC-555, DEC-554]\nrelated: [XSPEC-556]\n---\n# spec\n",
+    });
+    expect(spec?.refs.map((r) => r.id).sort()).toEqual(["DEC-554", "DEC-555", "XSPEC-556"]);
+
+    const dec = parseKnowledgeDoc({
+      content: "---\nid: DEC-555\nsupersedes: [DEC-554]\nimpacts: [XSPEC-555]\n---\n# dec\n",
+    });
+    expect(dec?.refs.map((r) => r.id).sort()).toEqual(["DEC-554", "XSPEC-555"]);
+  });
 });
 
 describe("KnowledgeGraph ingest + AC-3 impact analysis", () => {
@@ -103,6 +115,15 @@ describe("KnowledgeGraph ingest + AC-3 impact analysis", () => {
 
     const direct = result.decisions.find((d) => d.id === "DEC-062");
     expect(direct?.via).toBe("direct");
+  });
+
+  it("builds edges from front-matter relationship fields (no [[ref]] needed)", async () => {
+    await indexKnowledgeDocs(conn, [
+      { content: "---\nid: XSPEC-557\nimpacted_by: [DEC-557]\n---\n# spec 557\n" },
+      { content: "---\nid: DEC-557\ndate: 2026-05-30\n---\n# dec 557\n" },
+    ]);
+    const result = await impactAnalysis(conn, "XSPEC-557", 1);
+    expect(result.decisions.map((d) => d.id)).toContain("DEC-557");
   });
 
   it("serves AC-3 over POST /graph/impact-analysis", async () => {
