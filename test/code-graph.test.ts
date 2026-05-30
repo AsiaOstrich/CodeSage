@@ -72,6 +72,14 @@ describe("CodeGraph extractor (Phase 2)", () => {
     expect(fnNames).toEqual(["execute", "helper", "run"]);
   });
 
+  it("scope-qualifies ids so same-name functions in different scopes don't collide", () => {
+    const src = "function outer() { function helper(){ return 1; } return helper(); }\nfunction helper(){ return 2; }";
+    const { nodes } = extractCodeGraph(src, { filePath: "x.ts" });
+    const fnIds = nodes.filter((n) => n.label === "Function").map((n) => n.id).sort();
+    // nested helper qualified by its enclosing function; top-level helper distinct
+    expect(fnIds).toEqual(["x.ts#helper", "x.ts#outer", "x.ts#outer.helper"]);
+  });
+
   it("infers language from extension (.js parses too)", () => {
     const js = `function a(){ return b(); } function b(){ return 1; }`;
     const { edges } = extractCodeGraph(js, { filePath: "x.js" });
