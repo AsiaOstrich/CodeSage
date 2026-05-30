@@ -15,6 +15,7 @@
     }
   },
   "bin": {
+    "codesage": "./dist/cli/index.js",
     "codesage-mcp": "./dist/mcp/stdio.js"
   },
   "files": [

@@ -1,0 +1,157 @@
+#!/usr/bin/env node
+/**
+ * `codesage` CLI — index a repo into the graph and query it from the shell/CI.
+ * A thin arg-parsing layer (node:util parseArgs, zero new deps) over the
+ * command logic in src/cli/run.ts. The graph DB path is `CODESAGE_DB`
+ * (default `./.codesage/graph.db`); see src/graph-db/open.ts.
+ */
+
+import { parseArgs } from "node:util";
+import { createServer as createHttpServer } from "node:http";
+import { Readable } from "node:stream";
+
+import pkg from "../../package.json" with { type: "json" };
+import { openGraph, resolveDbPath } from "../graph-db/open.js";
+import { createServer } from "../api/server.js";
+import { startMcpStdio } from "../mcp/serve-stdio.js";
+import { cmdIndex, cmdCallers, cmdCallees, cmdImpact, cmdFeedback, cmdTop } from "./run.js";
+import type { ConfidenceLabel } from "../sage/index.js";
+
+const HELP = `codesage — code + knowledge graph memory CLI
+
+Usage: codesage <command> [args] [options]
+
+Commands:
+  index <dir> [--docs]            Index source (.ts/.js) into the code graph;
+                                  --docs also indexes .md into the knowledge graph
+  callers <symbol> [--depth N]    Functions that (transitively) call <symbol>
+  callees <symbol> [--depth N]    Functions that <symbol> (transitively) calls
+  impact <spec-id> [--max-hops N] Decisions in a spec's impact chain
+  feedback <type> <node-id> [--label L]
+                                  Evolve confidence (type: test_fail|test_pass|human_fix)
+  top <label> [--limit N]         Highest-confidence nodes (label: Function|Spec|Decision|Doc)
+  serve [--port 3000]             Run the REST server (routes under /graph/*)
+  mcp                             Run the MCP server over stdio (for coding assistants)
+
+Options:
+  --json            Output raw JSON
+  -h, --help        Show this help
+  -v, --version     Show version
+
+Graph DB: CODESAGE_DB env (default ./.codesage/graph.db)`;
+
+const VERSION = (pkg as { version: string }).version;
+
+function out(data: unknown, json: boolean | undefined, human: (d: unknown) => string): void {
+  process.stdout.write((json ? JSON.stringify(data, null, 2) : human(data)) + "\n");
+}
+
+const fmtNodes = (rows: Array<{ name?: string; id?: string; file?: string; confidence?: number }>): string =>
+  rows.length
+    ? rows
+        .map((r) => `  ${r.name ?? r.id}${r.file ? ` (${r.file})` : ""}${r.confidence != null ? ` [${r.confidence}]` : ""}`)
+        .join("\n")
+    : "  (none)";
+
+async function main(): Promise<void> {
+  const { values, positionals } = parseArgs({
+    args: process.argv.slice(2),
+    allowPositionals: true,
+    options: {
+      help: { type: "boolean", short: "h" },
+      version: { type: "boolean", short: "v" },
+      json: { type: "boolean" },
+      docs: { type: "boolean" },
+      depth: { type: "string" },
+      "max-hops": { type: "string" },
+      limit: { type: "string" },
+      label: { type: "string" },
+      port: { type: "string" },
+    },
+  });
+
+  const [cmd, a1, a2] = positionals;
+
+  if (values.version) return void process.stdout.write(VERSION + "\n");
+  if (values.help || !cmd) return void process.stdout.write(HELP + "\n");
+
+  const num = (v: string | undefined, d: number): number => (v != null ? Number(v) : d);
+
+  // Long-running commands manage their own lifecycle (no exit).
+  if (cmd === "mcp") return startMcpStdio();
+  if (cmd === "serve") {
+    const conn = await openGraph();
+    const app = createServer({ connection: conn });
+    const port = num(values.port, 3000);
+    createHttpServer(async (req, res) => {
+      const url = `http://${req.headers.host ?? "localhost"}${req.url ?? "/"}`;
+      const method = req.method ?? "GET";
+      const hasBody = method !== "GET" && method !== "HEAD";
+      const init: RequestInit & { duplex?: "half" } = {
+        method,
+        headers: req.headers as Record<string, string>,
+        body: hasBody ? (Readable.toWeb(req) as ReadableStream) : undefined,
+      };
+      if (hasBody) init.duplex = "half";
+      const response = await app.fetch(new Request(url, init));
+      res.statusCode = response.status;
+      response.headers.forEach((value, key) => res.setHeader(key, value));
+      res.end(await response.text());
+    }).listen(port, () => {
+      process.stdout.write(`CodeSage REST on http://localhost:${port} (db: ${resolveDbPath()})\n`);
+    });
+    return;
+  }
+
+  // Data commands: open graph, run, print, exit.
+  const conn = await openGraph();
+  switch (cmd) {
+    case "index": {
+      if (!a1) throw new Error("index requires a <dir>");
+      const r = await cmdIndex(conn, { dir: a1, docs: values.docs });
+      out(r, values.json, (d) => {
+        const s = d as Awaited<ReturnType<typeof cmdIndex>>;
+        const k = s.knowledge ? `\nknowledge: ${s.knowledge.specs} specs, ${s.knowledge.decisions} decisions, ${s.knowledge.impacts} impacts, ${s.knowledge.supersedes} supersedes` : "";
+        return `code: ${s.code.files} files, ${s.code.functions} functions, ${s.code.classes} classes, ${s.code.calls} calls (ambiguous ${s.code.ambiguous}, unresolved ${s.code.unresolved})${k}`;
+      });
+      break;
+    }
+    case "callers":
+    case "callees": {
+      if (!a1) throw new Error(`${cmd} requires a <symbol>`);
+      const rows = cmd === "callers" ? await cmdCallers(conn, a1, num(values.depth, 1)) : await cmdCallees(conn, a1, num(values.depth, 1));
+      out(rows, values.json, (d) => `${cmd}(${a1}):\n${fmtNodes(d as Array<{ name: string; file: string }>)}`);
+      break;
+    }
+    case "impact": {
+      if (!a1) throw new Error("impact requires a <spec-id>");
+      const r = await cmdImpact(conn, a1, num(values["max-hops"], 3));
+      out(r, values.json, (d) => {
+        const res = d as Awaited<ReturnType<typeof cmdImpact>>;
+        return `impact(${res.nodeId}):\n${res.decisions.length ? res.decisions.map((x) => `  ${x.id} [${x.via}] ${x.title}`).join("\n") : "  (none)"}`;
+      });
+      break;
+    }
+    case "feedback": {
+      if (!a1 || !a2) throw new Error("feedback requires <type> <node-id>");
+      const label = (values.label as ConfidenceLabel) ?? "Function";
+      const r = await cmdFeedback(conn, a1, a2, label);
+      out(r, values.json, (d) => (d ? `${(d as { nodeId: string }).nodeId}: ${(d as { before: number }).before} → ${(d as { after: number }).after}` : `node not found: ${label} ${a2}`));
+      break;
+    }
+    case "top": {
+      if (!a1) throw new Error("top requires a <label> (Function|Spec|Decision|Doc)");
+      const rows = await cmdTop(conn, a1 as ConfidenceLabel, num(values.limit, 10));
+      out(rows, values.json, (d) => `top ${a1}:\n${fmtNodes(d as Array<{ name: string; confidence: number }>)}`);
+      break;
+    }
+    default:
+      throw new Error(`unknown command: ${cmd}\n\n${HELP}`);
+  }
+  process.exit(0); // do not await conn.close() (kuzu+tree-sitter teardown caveat)
+}
+
+main().catch((err) => {
+  process.stderr.write(`codesage: ${err instanceof Error ? err.message : String(err)}\n`);
+  process.exit(1);
+});
