@@ -15,7 +15,7 @@ const git = (cwd: string, args: string[]) =>
   execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
 
 function initRepo(): string {
-  const dir = mkdtempSync(join(tmpdir(), "codesage-iso-"));
+  const dir = mkdtempSync(join(tmpdir(), "engram-iso-"));
   git(dir, ["init", "-b", "main"]);
   git(dir, ["config", "user.email", "t@t.dev"]);
   git(dir, ["config", "user.name", "t"]);
@@ -33,34 +33,34 @@ describe("sanitizeBranch", () => {
 });
 
 describe("resolveDbPath priority (XSPEC-245)", () => {
-  const saved = { db: process.env.CODESAGE_DB, iso: process.env.CODESAGE_ISOLATION };
+  const saved = { db: process.env.ENGRAM_DB, iso: process.env.ENGRAM_ISOLATION };
   beforeEach(() => {
-    delete process.env.CODESAGE_DB;
-    delete process.env.CODESAGE_ISOLATION;
+    delete process.env.ENGRAM_DB;
+    delete process.env.ENGRAM_ISOLATION;
   });
   afterAll(() => {
-    if (saved.db != null) process.env.CODESAGE_DB = saved.db;
-    if (saved.iso != null) process.env.CODESAGE_ISOLATION = saved.iso;
+    if (saved.db != null) process.env.ENGRAM_DB = saved.db;
+    if (saved.iso != null) process.env.ENGRAM_ISOLATION = saved.iso;
   });
 
-  it("defaults to single ./.codesage/graph.db", () => {
-    expect(resolveDbPath({ cwd: "/tmp/proj" })).toBe("/tmp/proj/.codesage/graph.db");
+  it("defaults to single ./.engram/graph.db", () => {
+    expect(resolveDbPath({ cwd: "/tmp/proj" })).toBe("/tmp/proj/.engram/graph.db");
   });
 
-  it("CODESAGE_DB env wins over everything", () => {
-    process.env.CODESAGE_DB = "/abs/custom.db";
+  it("ENGRAM_DB env wins over everything", () => {
+    process.env.ENGRAM_DB = "/abs/custom.db";
     expect(resolveDbPath({ cwd: "/tmp/proj", graph: "x", isolation: "git-branch" })).toBe("/abs/custom.db");
   });
 
-  it("--graph names the file under .codesage", () => {
-    expect(resolveDbPath({ cwd: "/tmp/proj", graph: "clientX" })).toBe("/tmp/proj/.codesage/clientX.db");
+  it("--graph names the file under .engram", () => {
+    expect(resolveDbPath({ cwd: "/tmp/proj", graph: "clientX" })).toBe("/tmp/proj/.engram/clientX.db");
   });
 
   it("git-branch isolation maps to per-branch DB under the git dir", () => {
     const repo = initRepo();
     try {
       const onMain = resolveDbPath({ cwd: repo, isolation: "git-branch" });
-      expect(onMain).toContain("/.git/codesage/");
+      expect(onMain).toContain("/.git/engram/");
       expect(onMain).toContain(sanitizeBranch("main"));
 
       git(repo, ["checkout", "-b", "feature/x"]);
@@ -74,9 +74,9 @@ describe("resolveDbPath priority (XSPEC-245)", () => {
   });
 
   it("git-branch falls back to single default outside a git repo", () => {
-    const dir = mkdtempSync(join(tmpdir(), "codesage-nogit-"));
+    const dir = mkdtempSync(join(tmpdir(), "engram-nogit-"));
     try {
-      expect(resolveDbPath({ cwd: dir, isolation: "git-branch" })).toBe(join(dir, ".codesage", "graph.db"));
+      expect(resolveDbPath({ cwd: dir, isolation: "git-branch" })).toBe(join(dir, ".engram", "graph.db"));
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
@@ -88,12 +88,12 @@ describe("cmdGc (XSPEC-245 AC-4)", () => {
     const repo = initRepo();
     try {
       git(repo, ["commit", "--allow-empty", "-m", "init"]); // main becomes a real ref
-      const codesageDir = join(repo, ".git", "codesage");
-      mkdirSync(codesageDir, { recursive: true });
+      const egrDir = join(repo, ".git", "engram");
+      mkdirSync(egrDir, { recursive: true });
       const live = `${sanitizeBranch("main")}.db`;
       const orphan = `${sanitizeBranch("deleted-branch")}.db`;
-      writeFileSync(join(codesageDir, live), "x");
-      writeFileSync(join(codesageDir, orphan), "x");
+      writeFileSync(join(egrDir, live), "x");
+      writeFileSync(join(egrDir, orphan), "x");
 
       const dry = cmdGc({ cwd: repo, dryRun: true });
       expect(dry.orphans).toEqual([orphan]);
@@ -111,7 +111,7 @@ describe("cmdGc (XSPEC-245 AC-4)", () => {
   });
 
   it("reports null dir outside a git repo", () => {
-    const dir = mkdtempSync(join(tmpdir(), "codesage-nogit-"));
+    const dir = mkdtempSync(join(tmpdir(), "engram-nogit-"));
     try {
       expect(cmdGc({ cwd: dir, dryRun: true }).dir).toBeNull();
     } finally {
@@ -126,7 +126,7 @@ describe("clearGraph prune (XSPEC-245 AC-2)", () => {
   let conn: GraphConnection;
 
   beforeAll(async () => {
-    dir = mkdtempSync(join(tmpdir(), "codesage-clean-"));
+    dir = mkdtempSync(join(tmpdir(), "engram-clean-"));
     conn = GraphConnection.open(join(dir, "g.db"));
     await initSchema(conn);
   });

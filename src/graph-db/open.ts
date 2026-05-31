@@ -8,12 +8,12 @@
  *
  * Path resolution priority (XSPEC-245):
  *   1. explicit `dbPath` (programmatic; caller knows best)
- *   2. env `CODESAGE_DB` (highest user-facing knob — a full path)
- *   3. `graph` name → `<cwd>/.codesage/<name>.db`
+ *   2. env `ENGRAM_DB` (highest user-facing knob — a full path)
+ *   3. `graph` name → `<cwd>/.engram/<name>.db`
  *   4. git-branch isolation (opt-in via `isolation: "git-branch"` or env
- *      `CODESAGE_ISOLATION=git-branch`) → `<git-common-dir>/codesage/<branch>.db`
+ *      `ENGRAM_ISOLATION=git-branch`) → `<git-common-dir>/engram/<branch>.db`
  *      (falls back to #5 when not a git repo / detached HEAD)
- *   5. single default → `<cwd>/.codesage/graph.db`
+ *   5. single default → `<cwd>/.engram/graph.db`
  */
 
 import { mkdirSync } from "node:fs";
@@ -28,9 +28,9 @@ export type IsolationMode = "single" | "git-branch";
 export interface GraphLocationOptions {
   /** Explicit DB path (wins over everything). */
   dbPath?: string;
-  /** Explicit graph name → `<cwd>/.codesage/<name>.db`. */
+  /** Explicit graph name → `<cwd>/.engram/<name>.db`. */
   graph?: string;
-  /** Isolation mode; defaults to env `CODESAGE_ISOLATION` else `"single"`. */
+  /** Isolation mode; defaults to env `ENGRAM_ISOLATION` else `"single"`. */
   isolation?: IsolationMode;
   /** Working dir for git detection / relative paths (default `process.cwd()`). */
   cwd?: string;
@@ -48,19 +48,20 @@ export function resolveDbPath(loc: string | GraphLocationOptions = {}): string {
 
   // 1. explicit programmatic path
   if (o.dbPath) return resolve(o.dbPath);
-  // 2. env CODESAGE_DB
-  if (process.env.CODESAGE_DB) return resolve(process.env.CODESAGE_DB);
+  // 2. env ENGRAM_DB (legacy CODESAGE_DB still honored as a fallback)
+  const envDb = process.env.ENGRAM_DB ?? process.env.CODESAGE_DB;
+  if (envDb) return resolve(envDb);
   // 3. explicit graph name
-  if (o.graph) return resolve(join(cwd, ".codesage", `${sanitizeGraphName(o.graph)}.db`));
-  // 4. git-branch isolation (opt-in)
-  const mode: IsolationMode =
-    o.isolation ?? (process.env.CODESAGE_ISOLATION === "git-branch" ? "git-branch" : "single");
+  if (o.graph) return resolve(join(cwd, ".engram", `${sanitizeGraphName(o.graph)}.db`));
+  // 4. git-branch isolation (opt-in; legacy CODESAGE_ISOLATION honored too)
+  const isoEnv = process.env.ENGRAM_ISOLATION ?? process.env.CODESAGE_ISOLATION;
+  const mode: IsolationMode = o.isolation ?? (isoEnv === "git-branch" ? "git-branch" : "single");
   if (mode === "git-branch") {
     const branchPath = gitBranchDbPath(cwd);
     if (branchPath) return branchPath; // else fall through to single default
   }
   // 5. single default
-  return resolve(join(cwd, ".codesage", "graph.db"));
+  return resolve(join(cwd, ".engram", "graph.db"));
 }
 
 /** Open (creating dirs) + schema-init a graph connection. */

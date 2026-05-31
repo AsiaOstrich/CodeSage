@@ -1,19 +1,16 @@
 {
-  "name": "@asiaostrich/codesage",
+  "name": "engramgraph",
   "version": "0.1.0",
   "description": "Open-source code + knowledge graph memory engine (SAGE + CodeGraph). AsiaOstrich is only a reference consumer.",
   "license": "MIT",
   "author": "AsiaOstrich",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/AsiaOstrich/CodeSage.git"
+    "url": "git+https://github.com/AsiaOstrich/EngramGraph.git"
   },
-  "homepage": "https://github.com/AsiaOstrich/CodeSage#readme",
+  "homepage": "https://github.com/AsiaOstrich/EngramGraph#readme",
   "bugs": {
-    "url": "https://github.com/AsiaOstrich/CodeSage/issues"
-  },
-  "publishConfig": {
-    "access": "public"
+    "url": "https://github.com/AsiaOstrich/EngramGraph/issues"
   },
   "type": "module",
   "main": "./dist/index.cjs",
@@ -27,8 +24,9 @@
     }
   },
   "bin": {
-    "codesage": "./dist/cli/index.js",
-    "codesage-mcp": "./dist/mcp/stdio.js"
+    "egr": "./dist/cli/index.js",
+    "engramgraph": "./dist/cli/index.js",
+    "egr-mcp": "./dist/mcp/stdio.js"
   },
   "files": [
     "dist",
@@ -49,8 +47,11 @@
     "dev": "node --experimental-strip-types --watch src/api/dev-server.ts"
   },
   "keywords": [
+    "engram",
+    "engramgraph",
     "code-graph",
     "knowledge-graph",
+    "code-memory",
     "kuzu",
     "graph-memory",
     "sage",

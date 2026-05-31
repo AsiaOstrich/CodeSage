@@ -1,12 +1,12 @@
-# CodeSage API
+# EngramGraph API
 
 > **Language:** English · [繁體中文](../locales/zh-TW/docs/API.md) · [简体中文](../locales/zh-CN/docs/API.md)
 
-Library reference for `@asiaostrich/codesage`. Everything below is exported from
+Library reference for `engramgraph`. Everything below is exported from
 the package root:
 
 ```ts
-import { /* ... */ } from "@asiaostrich/codesage";
+import { /* ... */ } from "engramgraph";
 ```
 
 The package is ESM-first with a CJS build; types are bundled. Runtime: Node ≥ 22.
@@ -35,8 +35,8 @@ re-index prunes nodes no longer present (the MERGE writer never deletes).
 
 Resolve a graph DB path / open it (creating dirs + schema). `loc` is a string
 path or `GraphLocationOptions = { dbPath?, graph?, isolation?, cwd? }`.
-Priority: `dbPath` > env `CODESAGE_DB` > `graph` name → `.codesage/<name>.db` >
-`isolation: "git-branch"` (per current branch) > default `.codesage/graph.db`.
+Priority: `dbPath` > env `ENGRAM_DB` > `graph` name → `.engram/<name>.db` >
+`isolation: "git-branch"` (per current branch) > default `.engram/graph.db`.
 `IsolationMode = "single" | "git-branch"`.
 
 ### `writeFragment(conn, fragment: GraphFragment): Promise<void>`
@@ -157,7 +157,7 @@ Constants `STEP`, `MIN_CONFIDENCE`, `MAX_CONFIDENCE` are exported.
 - **Isolation model** — `IsolationModel.dbPath(ctx?: IsolationContext): string`.
   `SingleRepoIsolation` (default, one `graph.db`) | `OrgProjectIsolation`
   (`org-{orgId}/project-{projectId}/graph.db`) | `GitBranchIsolation` (XSPEC-245;
-  per-branch `<git-common-dir>/codesage/<branch>.db`, with a fallback model).
+  per-branch `<git-common-dir>/engram/<branch>.db`, with a fallback model).
 - **Signal source** — `SignalSource → FeedbackEvent[]`; `GitHistorySignalSource`,
   `TestExitCodeSignalSource`. Types `FeedbackEvent`, `FeedbackSignal`.
 

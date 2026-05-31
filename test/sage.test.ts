@@ -23,7 +23,7 @@ let dir: string;
 let conn: GraphConnection;
 
 beforeAll(async () => {
-  dir = mkdtempSync(join(tmpdir(), "codesage-sage-"));
+  dir = mkdtempSync(join(tmpdir(), "engram-sage-"));
   conn = GraphConnection.open(join(dir, "graph.db"));
   await initSchema(conn);
 });

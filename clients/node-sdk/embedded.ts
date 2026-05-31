@@ -37,7 +37,7 @@ import {
 } from "../../src/sage/index.js";
 
 /**
- * In-process CodeSage client: zero HTTP overhead.
+ * In-process EngramGraph client: zero HTTP overhead.
  *
  * Wraps {@link GraphConnection} directly so consumers (e.g. VibeOps
  * `src/platform/memory/`, XSPEC-244) can embed the graph engine in the same

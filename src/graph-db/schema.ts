@@ -1,7 +1,7 @@
 import type { GraphConnection } from "./connection.js";
 
 /**
- * Kuzu schema for CodeSage (XSPEC-237 §"Kuzu 核心 Schema").
+ * Kuzu schema for EngramGraph (XSPEC-237 §"Kuzu 核心 Schema").
  *
  * NODE tables: Function, Class, Module, Spec, Decision (+ generic Doc).
  * REL  tables: CALLS, IMPORTS, DEFINES, IMPLEMENTS, IMPACTS, SUPERSEDES

@@ -1,8 +1,8 @@
-# Contributing to CodeSage
+# Contributing to EngramGraph
 
 > **Language:** English · [繁體中文](./locales/zh-TW/CONTRIBUTING.md) · [简体中文](./locales/zh-CN/CONTRIBUTING.md)
 
-Thanks for your interest in CodeSage. It is MIT-licensed and general-purpose —
+Thanks for your interest in EngramGraph. It is MIT-licensed and general-purpose —
 keep the **core free of AsiaOstrich-specific concepts** (XSPEC/DEC/org/VibeOps
 belong in reference adapters, not the core).
 
@@ -11,8 +11,8 @@ belong in reference adapters, not the core).
 Requires **Node.js ≥ 22** (native addons: kuzu + tree-sitter compile on install).
 
 ```bash
-git clone https://github.com/AsiaOstrich/CodeSage.git
-cd CodeSage
+git clone https://github.com/AsiaOstrich/EngramGraph.git
+cd EngramGraph
 npm install --legacy-peer-deps
 ```
 
@@ -55,7 +55,7 @@ src/sage/             confidence: writer / reader / evolution-loop
 src/adapters/         pluggable interfaces + generic defaults
 src/api/              Hono REST server + routes
 src/mcp/              MCP server + stdio bin
-src/cli/              codesage CLI (entry + run + walk)
+src/cli/              egr CLI (entry + run + walk)
 clients/node-sdk/     EmbeddedClient
 test/                 vitest suites (one per module)
 poc/                  experiments + health check (not published to npm)

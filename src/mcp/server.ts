@@ -1,8 +1,8 @@
 /**
- * CodeSage MCP server (XSPEC-237 G5).
+ * EngramGraph MCP server (XSPEC-237 G5).
  *
  * Exposes the graph-memory queries as MCP tools so any MCP-capable coding
- * assistant (Claude Code, Codex, Cursor, Windsurf, ...) can use CodeSage as a
+ * assistant (Claude Code, Codex, Cursor, Windsurf, ...) can use EngramGraph as a
  * plug-and-play code + knowledge graph. A thin adapter over the existing,
  * tested query functions — zero LLM, deterministic.
  *
@@ -26,12 +26,12 @@ const fail = (message: string) => ({
 });
 
 /**
- * Register CodeSage's tools on an MCP server backed by a graph connection.
+ * Register EngramGraph's tools on an MCP server backed by a graph connection.
  * The connection is long-lived (caller owns its lifecycle); never closed
  * per-call (kuzu+tree-sitter teardown caveat).
  */
 export function createMcpServer(conn: GraphConnection): McpServer {
-  const server = new McpServer({ name: "codesage", version: "0.1.0" });
+  const server = new McpServer({ name: "engramgraph", version: "0.1.0" });
 
   server.registerTool(
     "index_code",

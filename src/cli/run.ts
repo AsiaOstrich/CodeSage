@@ -10,7 +10,7 @@ import { join } from "node:path";
 
 import type { GraphConnection } from "../graph-db/connection.js";
 import { clearGraph } from "../graph-db/schema.js";
-import { gitBranchCodesageDir, listBranches, sanitizeBranch } from "../graph-db/git-branch.js";
+import { gitBranchEngramDir, listBranches, sanitizeBranch } from "../graph-db/git-branch.js";
 import { indexProject, callers, callees, type CallNode } from "../code-graph/index.js";
 import { indexKnowledgeDocs, impactAnalysis } from "../knowledge-graph/index.js";
 import { applyFeedback, feedbackForEventType, topByConfidence, type ConfidenceLabel } from "../sage/index.js";
@@ -23,7 +23,7 @@ export interface IndexResultSummary {
   knowledge?: { specs: number; decisions: number; impacts: number; supersedes: number };
 }
 
-/** `codesage index <dir> [--docs] [--clean]` — index code (always) + knowledge docs (--docs). */
+/** `egr index <dir> [--docs] [--clean]` — index code (always) + knowledge docs (--docs). */
 export async function cmdIndex(
   conn: GraphConnection,
   opts: { dir: string; docs?: boolean; clean?: boolean },
@@ -39,22 +39,22 @@ export async function cmdIndex(
   return result;
 }
 
-/** `codesage callers <symbol> [--depth N]`. */
+/** `egr callers <symbol> [--depth N]`. */
 export function cmdCallers(conn: GraphConnection, symbol: string, depth = 1): Promise<CallNode[]> {
   return callers(conn, symbol, depth);
 }
 
-/** `codesage callees <symbol> [--depth N]`. */
+/** `egr callees <symbol> [--depth N]`. */
 export function cmdCallees(conn: GraphConnection, symbol: string, depth = 1): Promise<CallNode[]> {
   return callees(conn, symbol, depth);
 }
 
-/** `codesage impact <spec-id> [--max-hops N]`. */
+/** `egr impact <spec-id> [--max-hops N]`. */
 export function cmdImpact(conn: GraphConnection, nodeId: string, maxHops = 3) {
   return impactAnalysis(conn, nodeId, maxHops);
 }
 
-/** `codesage feedback <type> <node-id> [--label L]`. */
+/** `egr feedback <type> <node-id> [--label L]`. */
 export function cmdFeedback(
   conn: GraphConnection,
   type: string,
@@ -70,7 +70,7 @@ export function cmdFeedback(
   );
 }
 
-/** `codesage top <label> [--limit N]`. */
+/** `egr top <label> [--limit N]`. */
 export function cmdTop(conn: GraphConnection, label: ConfidenceLabel, limit = 10) {
   return topByConfidence(conn, label, limit);
 }
@@ -85,14 +85,14 @@ export interface GcResult {
 }
 
 /**
- * `codesage gc [--dry-run]` — remove per-branch graphs whose branch no longer
- * exists (XSPEC-245). Inspects `<git-common-dir>/codesage/`; a `<name>.db` is an
+ * `egr gc [--dry-run]` — remove per-branch graphs whose branch no longer
+ * exists (XSPEC-245). Inspects `<git-common-dir>/engram/`; a `<name>.db` is an
  * orphan when no current local branch sanitizes to `<name>`. Also clears the
  * sibling `<name>.db.wal` left by Kuzu.
  */
 export function cmdGc(opts: { cwd?: string; dryRun?: boolean }): GcResult {
   const cwd = opts.cwd ?? process.cwd();
-  const dir = gitBranchCodesageDir(cwd);
+  const dir = gitBranchEngramDir(cwd);
   if (!dir || !existsSync(dir)) return { dir, orphans: [], deleted: false };
 
   const valid = new Set(listBranches(cwd).map((b) => `${sanitizeBranch(b)}.db`));

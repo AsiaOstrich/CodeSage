@@ -1,8 +1,8 @@
-# CodeSage MCP server
+# EngramGraph MCP server
 
 > **Language:** English · [繁體中文](../locales/zh-TW/docs/MCP.md) · [简体中文](../locales/zh-CN/docs/MCP.md)
 
-CodeSage ships a [Model Context Protocol](https://modelcontextprotocol.io)
+EngramGraph ships a [Model Context Protocol](https://modelcontextprotocol.io)
 server (stdio transport) so any MCP-capable coding assistant can use it as a
 **code + knowledge graph memory**. It is a thin adapter over the existing,
 tested query functions — **zero LLM, deterministic, no Docker**.
@@ -12,26 +12,26 @@ no network service, no container, no API key.
 
 ## Setup
 
-The server binary is `codesage-mcp` (equivalently `codesage mcp`). It reads the
-graph DB from `CODESAGE_DB` (default `./.codesage/graph.db`).
+The server binary is `egr-mcp` (equivalently `egr mcp`). It reads the
+graph DB from `ENGRAM_DB` (default `./.engram/graph.db`).
 
 ### Claude Code
 
 ```bash
 # From an installed package:
-claude mcp add codesage -- npx codesage-mcp
+claude mcp add egr -- npx egr-mcp
 
 # Or point at a local checkout's built bin:
-claude mcp add codesage -- node /abs/path/to/CodeSage/dist/mcp/stdio.js
+claude mcp add egr -- node /abs/path/to/EngramGraph/dist/mcp/stdio.js
 ```
 
 To pin the graph location, pass the env var:
 
 ```bash
-claude mcp add codesage --env CODESAGE_DB=/abs/path/.codesage/graph.db -- npx codesage-mcp
+claude mcp add egr --env ENGRAM_DB=/abs/path/.engram/graph.db -- npx egr-mcp
 ```
 
-Verify with `claude mcp list` → `codesage … ✓ Connected`.
+Verify with `claude mcp list` → `egr … ✓ Connected`.
 
 ### Codex / Cursor / Windsurf (and other MCP clients)
 
@@ -41,10 +41,10 @@ the command/args/env are the same:
 ```jsonc
 {
   "mcpServers": {
-    "codesage": {
+    "egr": {
       "command": "npx",
-      "args": ["codesage-mcp"],
-      "env": { "CODESAGE_DB": "/abs/path/.codesage/graph.db" }
+      "args": ["egr-mcp"],
+      "env": { "ENGRAM_DB": "/abs/path/.engram/graph.db" }
     }
   }
 }
@@ -77,9 +77,9 @@ Every tool returns a text content block of JSON; on failure it returns
 
 ## Notes
 
-- The connection is **long-lived**; CodeSage never closes it per call (a kuzu +
+- The connection is **long-lived**; EngramGraph never closes it per call (a kuzu +
   tree-sitter teardown caveat — see [CONTRIBUTING.md](../CONTRIBUTING.md)).
-- The graph is shared with the `codesage` CLI and the REST server: index once
+- The graph is shared with the `egr` CLI and the REST server: index once
   via any mode, query from another.
 - Confidence semantics (`STEP` 0.25, floor 0.1) and the full DDL are in
   [API.md](./API.md).

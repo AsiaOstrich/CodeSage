@@ -12,7 +12,7 @@ let dir: string;
 let client: EmbeddedClient;
 
 beforeAll(async () => {
-  dir = mkdtempSync(join(tmpdir(), "codesage-embed-"));
+  dir = mkdtempSync(join(tmpdir(), "engram-embed-"));
   client = new EmbeddedClient(new SingleRepoIsolation(dir));
   await client.init();
 });

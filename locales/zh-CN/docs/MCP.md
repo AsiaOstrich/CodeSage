@@ -6,11 +6,11 @@ last_synced: 2026-05-30
 status: complete
 ---
 
-# CodeSage MCP server
+# EngramGraph MCP server
 
 > **语言：** [English](../../../docs/MCP.md) · [繁體中文](../../zh-TW/docs/MCP.md) · 简体中文
 
-CodeSage 内置一个 [Model Context Protocol](https://modelcontextprotocol.io)
+EngramGraph 内置一个 [Model Context Protocol](https://modelcontextprotocol.io)
 server（stdio 传输），让任何支持 MCP 的编程助手都能把它当成**代码 + 知识图谱记忆**。
 它是既有、已测查询函数之上的薄 adapter——**无 LLM、确定性、免 Docker**。
 
@@ -18,26 +18,26 @@ server 以助手通过 stdio 启动的本地子进程运行；没有网络服务
 
 ## 配置
 
-server 可执行文件为 `codesage-mcp`（等同 `codesage mcp`）。它从 `CODESAGE_DB`
-（默认 `./.codesage/graph.db`）读取图数据库。
+server 可执行文件为 `egr-mcp`（等同 `egr mcp`）。它从 `ENGRAM_DB`
+（默认 `./.engram/graph.db`）读取图数据库。
 
 ### Claude Code
 
 ```bash
 # 使用已安装的包：
-claude mcp add codesage -- npx codesage-mcp
+claude mcp add egr -- npx egr-mcp
 
 # 或指向本地 checkout 已 build 的 bin：
-claude mcp add codesage -- node /abs/path/to/CodeSage/dist/mcp/stdio.js
+claude mcp add egr -- node /abs/path/to/EngramGraph/dist/mcp/stdio.js
 ```
 
 要固定图谱位置，传入环境变量：
 
 ```bash
-claude mcp add codesage --env CODESAGE_DB=/abs/path/.codesage/graph.db -- npx codesage-mcp
+claude mcp add egr --env ENGRAM_DB=/abs/path/.engram/graph.db -- npx egr-mcp
 ```
 
-用 `claude mcp list` 验证 → `codesage … ✓ Connected`。
+用 `claude mcp list` 验证 → `egr … ✓ Connected`。
 
 ### Codex / Cursor / Windsurf（及其他 MCP 客户端）
 
@@ -47,10 +47,10 @@ command/args/env 都一样：
 ```jsonc
 {
   "mcpServers": {
-    "codesage": {
+    "egr": {
       "command": "npx",
-      "args": ["codesage-mcp"],
-      "env": { "CODESAGE_DB": "/abs/path/.codesage/graph.db" }
+      "args": ["egr-mcp"],
+      "env": { "ENGRAM_DB": "/abs/path/.engram/graph.db" }
     }
   }
 }
@@ -80,7 +80,7 @@ command/args/env 都一样：
 
 ## 备注
 
-- 连接是**长生命周期**；CodeSage 不会每次调用就关闭它（kuzu + tree-sitter 销毁注意事项——见
+- 连接是**长生命周期**；EngramGraph 不会每次调用就关闭它（kuzu + tree-sitter 销毁注意事项——见
   [CONTRIBUTING.md](../CONTRIBUTING.md)）。
-- 图谱与 `codesage` CLI 及 REST server 共用：用任一模式索引一次，从另一个查询。
+- 图谱与 `egr` CLI 及 REST server 共用：用任一模式索引一次，从另一个查询。
 - 置信度语义（`STEP` 0.25、下限 0.1）与完整 DDL 见 [API.md](./API.md)。

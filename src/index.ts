@@ -1,5 +1,5 @@
 /**
- * CodeSage — open-source code + knowledge graph memory engine.
+ * EngramGraph — open-source code + knowledge graph memory engine.
  *
  * Library-mode entry point. AsiaOstrich (XSPEC/DEC/org/VibeOps) is only a
  * reference consumer; nothing here depends on it.

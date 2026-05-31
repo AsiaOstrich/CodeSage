@@ -15,7 +15,7 @@ let src: string;
 let conn: GraphConnection;
 
 beforeAll(async () => {
-  dir = mkdtempSync(join(tmpdir(), "codesage-cli-"));
+  dir = mkdtempSync(join(tmpdir(), "engram-cli-"));
   src = join(dir, "repo");
   mkdirSync(src, { recursive: true });
   writeFileSync(join(src, "a.ts"), "import {b} from './b';\nexport function a(){ return b(); }");
@@ -30,7 +30,7 @@ afterAll(() => {
   rmSync(dir, { recursive: true, force: true });
 });
 
-describe("codesage CLI commands", () => {
+describe("egr CLI commands", () => {
   it("index ingests code + docs", async () => {
     const r = await cmdIndex(conn, { dir: src, docs: true });
     expect(r.code.functions).toBe(2); // a, b
@@ -59,7 +59,7 @@ describe("codesage CLI commands", () => {
   });
 });
 
-describe("codesage CLI entry (spawn)", () => {
+describe("egr CLI entry (spawn)", () => {
   const run = (args: string[]) =>
     spawnSync("npx", ["tsx", "src/cli/index.ts", ...args], { encoding: "utf8", cwd: process.cwd() });
 
@@ -72,7 +72,7 @@ describe("codesage CLI entry (spawn)", () => {
   it("--help shows usage", () => {
     const r = run(["--help"]);
     expect(r.status).toBe(0);
-    expect(r.stdout).toContain("Usage: codesage");
+    expect(r.stdout).toContain("Usage: egr");
     expect(r.stdout).toContain("index");
   });
 });

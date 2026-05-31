@@ -6,11 +6,11 @@ last_synced: 2026-05-30
 status: complete
 ---
 
-# 參與貢獻 CodeSage
+# 參與貢獻 EngramGraph
 
 > **語言：** [English](../../CONTRIBUTING.md) · 繁體中文 · [简体中文](../zh-CN/CONTRIBUTING.md)
 
-感謝你對 CodeSage 感興趣。它採 MIT 授權且為通用引擎——請**讓核心保持不含 AsiaOstrich
+感謝你對 EngramGraph 感興趣。它採 MIT 授權且為通用引擎——請**讓核心保持不含 AsiaOstrich
 專屬概念**（XSPEC/DEC/org/VibeOps 屬於參考 adapter，不屬於核心）。
 
 ## 開發環境設定
@@ -18,8 +18,8 @@ status: complete
 需要 **Node.js ≥ 22**（原生 addon：kuzu + tree-sitter 會在安裝時編譯）。
 
 ```bash
-git clone https://github.com/AsiaOstrich/CodeSage.git
-cd CodeSage
+git clone https://github.com/AsiaOstrich/EngramGraph.git
+cd EngramGraph
 npm install --legacy-peer-deps
 ```
 
@@ -60,7 +60,7 @@ src/sage/             信心度：writer / reader / evolution-loop
 src/adapters/         可插拔介面 + 通用預設
 src/api/              Hono REST server + 路由
 src/mcp/              MCP server + stdio bin
-src/cli/              codesage CLI（entry + run + walk）
+src/cli/              egr CLI（entry + run + walk）
 clients/node-sdk/     EmbeddedClient
 test/                 vitest 測試（每模組一套）
 poc/                  實驗 + 健康檢查（不發布到 npm）

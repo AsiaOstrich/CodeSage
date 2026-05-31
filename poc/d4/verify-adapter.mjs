@@ -1,12 +1,12 @@
 /**
  * XSPEC-237 D4 — verify the brownfield→BuilderInput adapter.
  *
- * Builds control + treatment BuilderInput for every task (using REAL CodeSage
+ * Builds control + treatment BuilderInput for every task (using REAL EngramGraph
  * call-chain context) and checks: schema-valid; treatment carries the
  * call_chain_context and control does not; the spec artifact inlines the
  * existing code + acceptance criteria. No LLM required.
  *
- * Usage (CodeSage repo root, after `npm run build`):
+ * Usage (EngramGraph repo root, after `npm run build`):
  *   node poc/d4/verify-adapter.mjs
  */
 
@@ -27,7 +27,7 @@ const fixtureFiles = readdirSync(SRC)
   .filter((f) => f.endsWith(".ts"))
   .map((f) => ({ path: `src/${f}`, source: readFileSync(join(SRC, f), "utf8") }));
 
-const dbDir = join(tmpdir(), "codesage-d4-adapter");
+const dbDir = join(tmpdir(), "engram-d4-adapter");
 rmSync(dbDir, { recursive: true, force: true });
 mkdirSync(dbDir, { recursive: true });
 const conn = GraphConnection.open(join(dbDir, "graph.db"));

@@ -15,7 +15,7 @@ export interface ServerOptions {
 }
 
 /**
- * Build the CodeSage Hono application.
+ * Build the EngramGraph Hono application.
  *
  * Always mounts the health route (AC-1). When a `connection` is provided, the
  * graph data routes are mounted too: `/graph/impact-analysis` (Phase 3),

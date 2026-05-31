@@ -1,11 +1,11 @@
 name: Publish to npm
 
 # Triggered by publishing a GitHub Release. Builds, verifies, then publishes
-# @asiaostrich/codesage to npm via OIDC Trusted Publishing — NO token needed.
+# engramgraph to npm via OIDC Trusted Publishing — NO token needed.
 #
-# Setup (one-time, on npmjs.com → @asiaostrich/codesage → Settings → Trusted
+# Setup (one-time, on npmjs.com → engramgraph → Settings → Trusted
 # Publisher): add a GitHub Actions trusted publisher with
-#   organization/user: AsiaOstrich   repository: CodeSage   workflow: publish.yml
+#   organization/user: AsiaOstrich   repository: EngramGraph   workflow: publish.yml
 # npm then mints short-lived credentials from this job's OIDC id-token; the repo
 # must be public. Provenance is generated automatically.
 
@@ -50,5 +50,5 @@ jobs:
 
       # No NODE_AUTH_TOKEN: npm authenticates via the OIDC id-token against the
       # trusted publisher configured on npmjs. Provenance is automatic.
-      - name: Publish @asiaostrich/codesage (OIDC trusted publishing)
+      - name: Publish engramgraph (OIDC trusted publishing)
         run: npm publish --access public --tag ${{ steps.tag.outputs.tag }}

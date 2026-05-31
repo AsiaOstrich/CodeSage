@@ -69,7 +69,7 @@ export class OrgProjectIsolation implements IsolationModel {
 /**
  * Opt-in git-branch isolation (XSPEC-245).
  *
- * Resolves the graph DB to `<git-common-dir>/codesage/<sanitized-branch>.db`,
+ * Resolves the graph DB to `<git-common-dir>/engram/<sanitized-branch>.db`,
  * so each branch (often a distinct project) gets its own graph that survives
  * `git checkout`. Falls back to the supplied model when `cwd` is not a git repo
  * or HEAD is detached. Context is ignored (branch is detected from `cwd`).

@@ -100,7 +100,7 @@ describe("CodeGraph indexer + AC-2 query", () => {
   let conn: GraphConnection;
 
   beforeAll(async () => {
-    dir = mkdtempSync(join(tmpdir(), "codesage-cg-"));
+    dir = mkdtempSync(join(tmpdir(), "engram-cg-"));
     conn = GraphConnection.open(join(dir, "graph.db"));
     await initSchema(conn);
   });

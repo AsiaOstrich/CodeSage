@@ -1,7 +1,7 @@
 /**
  * XSPEC-237 D4 PoC — A/B experiment runner (P5).
  *
- * index fixture → per-task CodeSage call-chain context → run the Builder for
+ * index fixture → per-task EngramGraph call-chain context → run the Builder for
  * control (no context) and treatment (+ context) arms → metrics → aggregate →
  * pre-registered GO/NO-GO gate (decision driven by the positive-control tasks).
  *
@@ -36,7 +36,7 @@ import { toBuilderInput, validateBuilderInput } from "./brownfield-adapter.mjs";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const FIXTURE = join(HERE, "fixture");
 const SRC = join(FIXTURE, "src");
-const CODESAGE_ROOT = resolve(HERE, "..", "..");
+const ENGRAM_ROOT = resolve(HERE, "..", "..");
 const MODE = process.env.MODE ?? "mock";
 const BUILDER_CMD = process.env.BUILDER_CMD;
 const N = Number(process.env.N ?? (MODE === "mock" ? 2 : 1));
@@ -50,7 +50,7 @@ const fixtureFiles = readdirSync(SRC)
 // --- 1. Index fixture + per-task call-chain context (REAL) -------------------
 
 async function buildContexts() {
-  const dbDir = join(tmpdir(), "codesage-d4-exp");
+  const dbDir = join(tmpdir(), "engram-d4-exp");
   rmSync(dbDir, { recursive: true, force: true });
   mkdirSync(dbDir, { recursive: true });
   const conn = GraphConnection.open(join(dbDir, "graph.db"));
@@ -67,7 +67,7 @@ async function buildContexts() {
       callees: chain.callees.map((c) => c.name),
       callerFiles: Object.fromEntries(chain.callers.map((c) => [c.name, c.file])),
       block:
-        `## Call chain for ${task.targetSymbol} (from CodeSage)\n` +
+        `## Call chain for ${task.targetSymbol} (from EngramGraph)\n` +
         `Direct callers (review/update on a signature or behaviour change): ` +
         `${chain.callers.map((c) => `${c.name} (${c.file})`).join(", ") || "(none)"}\n` +
         `Direct callees: ${chain.callees.map((c) => c.name).join(", ") || "(none)"}`,
@@ -119,7 +119,7 @@ function applyOutput(ws, out) {
 
 function runFixtureTests(ws) {
   const nm = join(ws, "node_modules");
-  if (!existsSync(nm)) symlinkSync(join(CODESAGE_ROOT, "node_modules"), nm, "dir");
+  if (!existsSync(nm)) symlinkSync(join(ENGRAM_ROOT, "node_modules"), nm, "dir");
   try {
     execSync("npx vitest run", { cwd: ws, stdio: "ignore" });
     return true;
@@ -148,7 +148,7 @@ async function runBuilder(task, arm, ctx) {
   }
   const { ws, inputPath, outputPath } = prepWorkspace(task, arm, ctx);
   execSync(BUILDER_CMD, {
-    cwd: CODESAGE_ROOT,
+    cwd: ENGRAM_ROOT,
     stdio: "inherit",
     env: { ...process.env, D4_INPUT: inputPath, D4_WORKSPACE: ws, D4_OUTPUT: outputPath, D4_TASK: task.id, D4_ARM: arm },
   });

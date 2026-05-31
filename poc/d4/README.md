@@ -1,11 +1,11 @@
 # XSPEC-237 D4 PoC — Builder call-chain injection
 
-PoC assets to decide (data-driven) whether injecting CodeSage call-chain
+PoC assets to decide (data-driven) whether injecting EngramGraph call-chain
 context into the VibeOps Builder prompt actually improves brownfield edits.
 See the full design in dev-platform `cross-project/specs/XSPEC-237-D4-poc-builder-callchain.md`
 and the decision boundary in `DEC-070`.
 
-> These files are PoC-only. They are **not** part of CodeSage's `src` build
+> These files are PoC-only. They are **not** part of EngramGraph's `src` build
 > (excluded from `tsconfig`/`vitest`/`tsup`), so they never ship in the package.
 
 ## Contents
@@ -15,7 +15,7 @@ and the decision boundary in `DEC-070`.
 | `fixture/src/*.ts` | A small multi-file TS library (money → pricing → order, inventory → order) with a non-trivial **cross-file** call graph. |
 | `fixture/test/order.test.ts` | Baseline behaviour tests — the experiment measures first-pass pass / regressions against these. |
 | `tasks.json` | 7 brownfield tasks. `groundTruthCallers` = the call sites that MUST be updated (the "missed call-site" denominator). 5 positive + 2 negative controls (`shouldCallChainHelp: false`). |
-| `verify-callgraph.mjs` | Gate: indexes the fixture with CodeSage and checks extracted `callers(X)` matches `tasks.json` ground truth. Run **before** the experiment — inaccurate context invalidates the measurement. |
+| `verify-callgraph.mjs` | Gate: indexes the fixture with EngramGraph and checks extracted `callers(X)` matches `tasks.json` ground truth. Run **before** the experiment — inaccurate context invalidates the measurement. |
 
 ## Call graph (ground truth)
 
@@ -28,7 +28,7 @@ lineTotal  → addTax, formatMoney                  (pricing.ts → money.ts)
 ## Run the accuracy gate
 
 ```bash
-# from the CodeSage repo root
+# from the EngramGraph repo root
 npm run build
 node poc/d4/verify-callgraph.mjs   # expect: all callers match ground truth, exit 0
 ```
@@ -36,7 +36,7 @@ node poc/d4/verify-callgraph.mjs   # expect: all callers match ground truth, exi
 ## Run the experiment (P5)
 
 `run-experiment.mjs` wires the whole A/B loop. The REAL parts run locally:
-index fixture → per-task CodeSage call-chain context (direct callers/callees,
+index fixture → per-task EngramGraph call-chain context (direct callers/callees,
 depth 1, matching `groundTruthCallers`) → two arms (control / treatment) →
 metrics (missed call-sites, first-pass pass, iterations, cost) → aggregate →
 pre-registered GO/NO-GO gate (decision driven by the positive-control tasks).

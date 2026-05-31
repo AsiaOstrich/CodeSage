@@ -29,7 +29,7 @@ let client: Client;
 let server: McpServer;
 
 beforeAll(async () => {
-  dir = mkdtempSync(join(tmpdir(), "codesage-mcp-"));
+  dir = mkdtempSync(join(tmpdir(), "egr-mcp-"));
   conn = GraphConnection.open(join(dir, "g.db"));
   await initSchema(conn);
   server = createMcpServer(conn);
@@ -42,7 +42,7 @@ afterAll(() => {
   rmSync(dir, { recursive: true, force: true });
 });
 
-describe("CodeSage MCP server", () => {
+describe("EngramGraph MCP server", () => {
   it("advertises the expected tools", async () => {
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();

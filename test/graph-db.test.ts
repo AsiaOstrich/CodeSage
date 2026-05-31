@@ -19,7 +19,7 @@ describe("graph-db schema (AC-1)", () => {
   let conn: GraphConnection;
 
   beforeEach(() => {
-    dir = mkdtempSync(join(tmpdir(), "codesage-test-"));
+    dir = mkdtempSync(join(tmpdir(), "engram-test-"));
     conn = GraphConnection.open(join(dir, "graph.db"));
   });
 

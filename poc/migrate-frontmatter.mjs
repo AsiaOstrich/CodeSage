@@ -6,7 +6,7 @@
  * `depends_on`). This conservatively extracts XSPEC/SPEC/DEC/ADR tokens from
  * those *labelled* lines only and writes them as the standard's relationship
  * front-matter (related / impacts / impacted_by / supersedes), which the
- * upgraded CodeSage parser now reads.
+ * upgraded EngramGraph parser now reads.
  *
  * Default is DRY-RUN (reports only). Pass --apply to write front-matter.
  * Idempotent: skips a doc that already has a `---` front-matter block.

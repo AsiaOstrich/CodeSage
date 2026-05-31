@@ -1,10 +1,10 @@
 /**
- * XSPEC-237 D4 PoC — verify CodeSage extracts the fixture's call graph
+ * XSPEC-237 D4 PoC — verify EngramGraph extracts the fixture's call graph
  * correctly (precision/recall of "callers of X" vs the hand-labelled ground
  * truth in tasks.json). If this fails, the PoC measurement is invalid, so this
  * gate runs BEFORE the main experiment.
  *
- * Usage: from CodeSage repo root, after `npm run build`:
+ * Usage: from EngramGraph repo root, after `npm run build`:
  *   node poc/d4/verify-callgraph.mjs
  */
 
@@ -23,7 +23,7 @@ const files = readdirSync(SRC)
   .filter((f) => f.endsWith(".ts"))
   .map((f) => ({ path: `src/${f}`, source: readFileSync(join(SRC, f), "utf8") }));
 
-const dbDir = join(tmpdir(), "codesage-d4-verify");
+const dbDir = join(tmpdir(), "engram-d4-verify");
 rmSync(dbDir, { recursive: true, force: true });
 mkdirSync(dbDir, { recursive: true });
 const conn = GraphConnection.open(join(dbDir, "graph.db"));

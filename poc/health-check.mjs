@@ -1,9 +1,9 @@
 /**
- * CodeSage health check — end-to-end smoke across every module, against the
+ * EngramGraph health check — end-to-end smoke across every module, against the
  * built package (dist). Complements the unit tests (`npm test`) by exercising
  * the public API the way a consumer would. Self-contained (no external corpus).
  *
- * Usage (from CodeSage repo root):
+ * Usage (from EngramGraph repo root):
  *   npm run build && node poc/health-check.mjs
  *
  * Exit 0 = all green; exit 1 = a check failed (CI-usable).
@@ -85,5 +85,5 @@ check("mcp: tools + protocol", tools.length === 5 && !callRes.isError,
 rmSync(dir, { recursive: true, force: true });
 // NOTE: no conn.close() — Kuzu's native close can deadlock with tree-sitter
 // co-loaded; the OS reclaims the temp DB on exit (documented caveat).
-console.log(failures === 0 ? "\nCodeSage: all modules healthy." : `\n${failures} check(s) FAILED.`);
+console.log(failures === 0 ? "\nEngramGraph: all modules healthy." : `\n${failures} check(s) FAILED.`);
 process.exit(failures === 0 ? 0 : 1);

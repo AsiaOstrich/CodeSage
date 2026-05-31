@@ -49,14 +49,14 @@ const artifactsDir = join(D4_WORKSPACE, "artifacts");
 //    extra fields are safe. (verified against config.ts)
 const config = JSON.parse(readFileSync(join(VIBEOPS_DIR, "vibeops.config.json"), "utf8"));
 config.providers ??= {};
-config.providers["codesage-poc"] = {
+config.providers["engram-poc"] = {
   type: "claude-agent-sdk",
   model: MODEL,
   capabilities: ["coding"],
   sandbox: { localWorkDir: D4_WORKSPACE },
 };
 config.agents ??= {};
-config.agents.builder = { ...(config.agents.builder ?? {}), provider: "codesage-poc" };
+config.agents.builder = { ...(config.agents.builder ?? {}), provider: "engram-poc" };
 config.pipeline ??= {};
 config.pipeline.artifactsDir = artifactsDir;
 

@@ -2,7 +2,7 @@
  * Git-branch isolation helpers (XSPEC-245).
  *
  * Per-branch graph DBs live under the repo's git common dir
- * (`<git-common-dir>/codesage/<sanitized-branch>.db`) so they survive
+ * (`<git-common-dir>/engram/<sanitized-branch>.db`) so they survive
  * `git checkout` (git never touches its own dir) without polluting the work
  * tree, and `--git-common-dir` keeps linked worktrees pointing at one location.
  *
@@ -37,11 +37,11 @@ export function sanitizeBranch(branch: string): string {
   return `${safe}-${hash}`;
 }
 
-/** The `codesage` dir under the repo's git common dir, or null if not a repo. */
-export function gitBranchCodesageDir(cwd: string): string | null {
+/** The `egr` dir under the repo's git common dir, or null if not a repo. */
+export function gitBranchEngramDir(cwd: string): string | null {
   const gitDir = git(cwd, ["rev-parse", "--git-common-dir"]);
   if (!gitDir) return null;
-  return join(resolve(cwd, gitDir), "codesage");
+  return join(resolve(cwd, gitDir), "engram");
 }
 
 /**
@@ -60,7 +60,7 @@ export function currentBranch(cwd: string): string | null {
  * apply (not a git repo, or detached HEAD — caller should fall back).
  */
 export function gitBranchDbPath(cwd: string): string | null {
-  const dir = gitBranchCodesageDir(cwd);
+  const dir = gitBranchEngramDir(cwd);
   const branch = currentBranch(cwd);
   if (!dir || !branch) return null;
   return join(dir, `${sanitizeBranch(branch)}.db`);

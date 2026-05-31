@@ -12,7 +12,7 @@
  *   - a companion designer spec artifact carrying the change description, the
  *     existing source (inlined, so tool-less providers also work), the
  *     acceptance criteria derived from the task, and — for the TREATMENT arm
- *     only — the CodeSage call-chain context.
+ *     only — the EngramGraph call-chain context.
  *
  * Control and treatment differ by exactly one thing: the call-chain block.
  */
@@ -34,7 +34,7 @@ const UPSTREAM_REQUIRED = ["prd_title", "prd_version", "tech_stack", "key_decisi
  * @param {object}  task          one entry from tasks.json
  * @param {{path:string,source:string}[]} fixtureFiles  the existing codebase
  * @param {{callers:string[],callees:string[],block:string}|null} callChain
- *        CodeSage context for the treatment arm; null for control
+ *        EngramGraph context for the treatment arm; null for control
  * @param {string}  createdAt     ISO timestamp (passed in for determinism)
  * @returns {{ builderInput: object, specArtifact: object, specPath: string }}
  */
@@ -64,14 +64,14 @@ export function toBuilderInput(task, fixtureFiles, callChain, createdAt) {
       run: "npm test",
       note: "Existing fixture tests must stay green; update them only if the change makes a test's expectation obsolete.",
     },
-    // TREATMENT-only: CodeSage call-chain context. Absent in control.
+    // TREATMENT-only: EngramGraph call-chain context. Absent in control.
     ...(callChain
       ? {
           call_chain_context: {
             symbol: callChain.symbol,
             callers: callChain.callers,
             callees: callChain.callees,
-            note: "Provided by CodeSage. These are the direct call sites to review/update.",
+            note: "Provided by EngramGraph. These are the direct call sites to review/update.",
           },
         }
       : {}),
@@ -102,7 +102,7 @@ export function toBuilderInput(task, fixtureFiles, callChain, createdAt) {
     assumptions: [
       "The codebase already exists; emit patches[] (unified diff) for modified files.",
       callChain
-        ? `Callers of ${task.targetSymbol} per CodeSage: ${callChain.callers.join(", ") || "(none)"}.`
+        ? `Callers of ${task.targetSymbol} per EngramGraph: ${callChain.callers.join(", ") || "(none)"}.`
         : "No call-chain hints provided; locate call sites yourself.",
     ],
   };

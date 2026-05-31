@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * `codesage` CLI — index a repo into the graph and query it from the shell/CI.
+ * `egr` CLI — index a repo into the graph and query it from the shell/CI.
  * A thin arg-parsing layer (node:util parseArgs, zero new deps) over the
- * command logic in src/cli/run.ts. The graph DB path is `CODESAGE_DB`
- * (default `./.codesage/graph.db`); see src/graph-db/open.ts.
+ * command logic in src/cli/run.ts. The graph DB path is `ENGRAM_DB`
+ * (default `./.engram/graph.db`); see src/graph-db/open.ts.
  */
 
 import { parseArgs } from "node:util";
@@ -17,9 +17,9 @@ import { startMcpStdio } from "../mcp/serve-stdio.js";
 import { cmdIndex, cmdCallers, cmdCallees, cmdImpact, cmdFeedback, cmdTop, cmdGc, type GcResult } from "./run.js";
 import type { ConfidenceLabel } from "../sage/index.js";
 
-const HELP = `codesage — code + knowledge graph memory CLI
+const HELP = `egr — code + knowledge graph memory CLI
 
-Usage: codesage <command> [args] [options]
+Usage: egr <command> [args] [options]
 
 Commands:
   index <dir> [--docs] [--clean]  Index source (.ts/.js) into the code graph;
@@ -37,14 +37,14 @@ Commands:
 
 Options:
   --json                Output raw JSON
-  --graph <name>        Use graph ./.codesage/<name>.db (explicit project graph)
+  --graph <name>        Use graph ./.engram/<name>.db (explicit project graph)
   --isolation <mode>    single (default) | git-branch (per-branch graph)
   -h, --help            Show this help
   -v, --version         Show version
 
-Graph DB selection (highest first): CODESAGE_DB env > --graph > --isolation
-git-branch (per current branch) > default ./.codesage/graph.db.
-Env CODESAGE_ISOLATION=git-branch enables per-branch isolation without the flag.`;
+Graph DB selection (highest first): ENGRAM_DB env > --graph > --isolation
+git-branch (per current branch) > default ./.engram/graph.db.
+Env ENGRAM_ISOLATION=git-branch enables per-branch isolation without the flag.`;
 
 const VERSION = (pkg as { version: string }).version;
 
@@ -129,7 +129,7 @@ async function main(): Promise<void> {
       response.headers.forEach((value, key) => res.setHeader(key, value));
       res.end(await response.text());
     }).listen(port, () => {
-      process.stdout.write(`CodeSage REST on http://localhost:${port} (db: ${resolveDbPath(loc)})\n`);
+      process.stdout.write(`EngramGraph REST on http://localhost:${port} (db: ${resolveDbPath(loc)})\n`);
     });
     return;
   }
@@ -183,6 +183,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  process.stderr.write(`codesage: ${err instanceof Error ? err.message : String(err)}\n`);
+  process.stderr.write(`egr: ${err instanceof Error ? err.message : String(err)}\n`);
   process.exit(1);
 });

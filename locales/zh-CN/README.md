@@ -6,11 +6,11 @@ last_synced: 2026-05-30
 status: complete
 ---
 
-# CodeSage
+# EngramGraph
 
 > **语言：** [English](../../README.md) · [繁體中文](../zh-TW/README.md) · 简体中文
 
-[![npm](https://img.shields.io/npm/v/@asiaostrich/codesage)](https://www.npmjs.com/package/@asiaostrich/codesage)
+[![npm](https://img.shields.io/npm/v/engramgraph)](https://www.npmjs.com/package/engramgraph)
 [![license: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../../LICENSE)
 [![node](https://img.shields.io/badge/node-%E2%89%A522-brightgreen.svg)](https://nodejs.org)
 
@@ -20,49 +20,49 @@ status: complete
 
 **许可：** MIT · **运行环境：** Node.js ≥ 22 · **图数据库：** [Kuzu](https://kuzudb.com/)（嵌入式、Cypher）· **无需 LLM**（确定性）
 
-CodeSage 是通用引擎。**AsiaOstrich（VibeOps / UDS / XSPEC / DEC）只是一个参考使用者**
+EngramGraph 是通用引擎。**AsiaOstrich（VibeOps / UDS / XSPEC / DEC）只是一个参考使用者**
 ——这些概念都不会内建于核心。默认行为（“单一 repo + 通用 markdown + git 信号”）对任何项目
 开箱即用；AsiaOstrich 专属行为则通过可插拔的 adapter 提供。
 
 ## 为什么用图谱？
 
 向量检索（“找出相似的记忆”）与图谱遍历（“找出结构相关的节点”）是互补的。
-CodeSage 补上图谱这一半：
+EngramGraph 补上图谱这一半：
 
 > “我想改 `execute()` → 引擎会遍历：调用者 → 相关 spec → 背后的决策。”
 
 ## 安装
 
 ```bash
-npm install @asiaostrich/codesage
+npm install engramgraph
 ```
 
 或不安装直接运行 CLI：
 
 ```bash
-npx @asiaostrich/codesage index ./src
+npx engramgraph index ./src
 ```
 
 ## 快速上手
 
 ```bash
 # 1. 将 repo 索引进图谱（代码 + 可选文档）
-codesage index ./src --docs
+egr index ./src --docs
 
 # 2.“改这个函数会牵动什么？”
-codesage callers myFunction --depth 2
+egr callers myFunction --depth 2
 
 # 3.“这个 spec 背后有哪些决策？”
-codesage impact XSPEC-237
+egr impact XSPEC-237
 ```
 
-图数据库位于 `CODESAGE_DB`（默认 `./.codesage/graph.db`）。
+图数据库位于 `ENGRAM_DB`（默认 `./.engram/graph.db`）。
 完整命令参考：**[docs/CLI.md](./docs/CLI.md)**。
 
 ### 嵌入式使用（同进程、零 HTTP）
 
 ```ts
-import { EmbeddedClient } from "@asiaostrich/codesage";
+import { EmbeddedClient } from "engramgraph";
 
 const client = new EmbeddedClient();   // 默认 SingleRepoIsolation
 await client.init();                   // 打开 graph.db 并确保 schema 存在
@@ -73,32 +73,32 @@ await client.close();
 ### REST 使用
 
 ```ts
-import { createServer, GraphConnection } from "@asiaostrich/codesage";
+import { createServer, GraphConnection } from "engramgraph";
 
-const conn = GraphConnection.open("./.codesage/graph.db");
+const conn = GraphConnection.open("./.engram/graph.db");
 const app = createServer({ connection: conn });   // Hono app；路由在 /graph/* 下
 // GET /health → { status: "ok" }
 ```
 
-或直接 `codesage serve --port 3000`。API 参考：**[docs/API.md](./docs/API.md)**。
+或直接 `egr serve --port 3000`。API 参考：**[docs/API.md](./docs/API.md)**。
 
 ## 三种模式
 
 | 模式 | 入口 | 使用场景 |
 |------|------|----------|
 | **嵌入式（Embedded）** | `EmbeddedClient` | 同进程、零 HTTP 开销（如 VibeOps 集成）|
-| **REST** | `createServer()`（Hono）/ `codesage serve` | 独立图谱服务；路由在 `/graph/*` 下 |
-| **MCP** | `codesage-mcp`（stdio）/ `codesage mcp` | 编程助手即插即用（Claude Code、Codex、Cursor……）|
+| **REST** | `createServer()`（Hono）/ `egr serve` | 独立图谱服务；路由在 `/graph/*` 下 |
+| **MCP** | `egr-mcp`（stdio）/ `egr mcp` | 编程助手即插即用（Claude Code、Codex、Cursor……）|
 
-## MCP — 在编程助手中使用 CodeSage
+## MCP — 在编程助手中使用 EngramGraph
 
-CodeSage 内置一个 MCP server（stdio），暴露 5 个工具——`index_code`、`index_docs`、
+EngramGraph 内置一个 MCP server（stdio），暴露 5 个工具——`index_code`、`index_docs`、
 `call_chain`、`impact_analysis`、`ingest_feedback`——让任何支持 MCP 的助手都能把它当成
 代码 + 知识图谱使用。无 LLM、确定性、**免 Docker**。
 
 ```bash
 # Claude Code，使用已安装的包：
-claude mcp add codesage -- npx codesage-mcp
+claude mcp add egr -- npx egr-mcp
 ```
 
 完整配置（Claude Code / Codex / Cursor / Windsurf）、5 个工具与示例流程：
@@ -141,7 +141,7 @@ claude mcp add codesage -- npx codesage-mcp
 - [x] **Phase 4** — SAGE 演化层：置信度反馈（`STEP` 0.25、下限 0.1）、
       `topByConfidence`、`rankedImpact`
 - [x] **Phase 5** — REST 路由（`/graph/call-chain`、`/graph/impact-analysis`、
-      `/graph/ingest`）、MCP server（5 工具）、独立 `codesage` CLI
+      `/graph/ingest`）、MCP server（5 工具）、独立 `egr` CLI
 
 ## 参与贡献
 

@@ -6,14 +6,14 @@ last_synced: 2026-05-30
 status: complete
 ---
 
-# CodeSage API
+# EngramGraph API
 
 > **語言：** [English](../../../docs/API.md) · 繁體中文 · [简体中文](../../zh-CN/docs/API.md)
 
-`@asiaostrich/codesage` 的 library 參考。以下全部都從套件根目錄匯出：
+`engramgraph` 的 library 參考。以下全部都從套件根目錄匯出：
 
 ```ts
-import { /* ... */ } from "@asiaostrich/codesage";
+import { /* ... */ } from "engramgraph";
 ```
 
 套件以 ESM 為主並附 CJS build；型別已內附。執行環境：Node ≥ 22。
@@ -41,8 +41,8 @@ import { /* ... */ } from "@asiaostrich/codesage";
 
 解析圖譜 DB 路徑 / 開啟它（建目錄 + schema）。`loc` 為字串路徑或
 `GraphLocationOptions = { dbPath?, graph?, isolation?, cwd? }`。優先序：
-`dbPath` > env `CODESAGE_DB` > `graph` 名 → `.codesage/<name>.db` >
-`isolation: "git-branch"`（依當前分支）> 預設 `.codesage/graph.db`。
+`dbPath` > env `ENGRAM_DB` > `graph` 名 → `.engram/<name>.db` >
+`isolation: "git-branch"`（依當前分支）> 預設 `.engram/graph.db`。
 `IsolationMode = "single" | "git-branch"`。
 
 ### `writeFragment(conn, fragment: GraphFragment): Promise<void>`
@@ -158,7 +158,7 @@ AsiaOstrich **參考** adapter：XSPEC → `Spec`、DEC/ADR → `Decision`、
 - **隔離模型** — `IsolationModel.dbPath(ctx?: IsolationContext): string`。
   `SingleRepoIsolation`（預設，單一 `graph.db`）| `OrgProjectIsolation`
   （`org-{orgId}/project-{projectId}/graph.db`）| `GitBranchIsolation`（XSPEC-245；
-  每分支 `<git-common-dir>/codesage/<branch>.db`，附 fallback 模型）。
+  每分支 `<git-common-dir>/engram/<branch>.db`，附 fallback 模型）。
 - **訊號來源** — `SignalSource → FeedbackEvent[]`；`GitHistorySignalSource`、
   `TestExitCodeSignalSource`。型別 `FeedbackEvent`、`FeedbackSignal`。
 

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to `@asiaostrich/codesage` are documented here.
+All notable changes to `engramgraph` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -31,13 +31,13 @@ on embedded Kuzu, usable as a library, REST service, MCP server, or CLI.
 - **api** — Hono REST server (`createServer`) with `GET /health` and graph
   routes `/graph/call-chain`, `/graph/impact-analysis`, `/graph/ingest`.
 - **mcp** — Model Context Protocol server (`createMcpServer`, stdio bin
-  `codesage-mcp`) exposing `index_code`, `index_docs`, `call_chain`,
+  `egr-mcp`) exposing `index_code`, `index_docs`, `call_chain`,
   `impact_analysis`, `ingest_feedback`.
-- **cli** — standalone `codesage` CLI: `index`, `callers`, `callees`, `impact`,
+- **cli** — standalone `egr` CLI: `index`, `callers`, `callees`, `impact`,
   `feedback`, `top`, `gc`, `serve`, `mcp` (`--json` / `--help` / `--version`).
 - **branch / project isolation** (XSPEC-245) — `--isolation git-branch` (or env
-  `CODESAGE_ISOLATION=git-branch`) keeps a per-branch graph under
-  `<git-common-dir>/codesage/<branch>.db`; `--graph <name>` selects an explicit
+  `ENGRAM_ISOLATION=git-branch`) keeps a per-branch graph under
+  `<git-common-dir>/engram/<branch>.db`; `--graph <name>` selects an explicit
   named graph; `index --clean` rebuilds to prune deleted nodes; `gc` removes
   graphs of deleted branches. New `GitBranchIsolation` adapter + `clearGraph`,
   `resolveDbPath`, `openGraph` exports. Default stays single-graph (unchanged).
@@ -48,4 +48,4 @@ on embedded Kuzu, usable as a library, REST service, MCP server, or CLI.
 - Tri-lingual documentation (English / 繁體中文 / 简体中文): README, CLI, MCP,
   API, CONTRIBUTING.
 
-[0.1.0]: https://github.com/AsiaOstrich/CodeSage/releases/tag/v0.1.0
+[0.1.0]: https://github.com/AsiaOstrich/EngramGraph/releases/tag/v0.1.0

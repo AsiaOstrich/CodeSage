@@ -1,4 +1,4 @@
-// XSPEC-237 dogfood: index real dev-platform XSPEC/DEC corpus into CodeSage
+// XSPEC-237 dogfood: index real dev-platform XSPEC/DEC corpus into EngramGraph
 // KnowledgeGraph and run impact-analysis. Pure graph, no LLM.
 import { readFileSync, readdirSync, rmSync, mkdirSync } from "node:fs";
 import { tmpdir } from "node:os"; import { join } from "node:path";
@@ -10,7 +10,7 @@ for (const sub of ["specs","decisions","adr"]) {
   for (const f of files) if (f.endsWith(".md"))
     docs.push({ content: readFileSync(join(ROOT,sub,f),"utf8"), fallbackId: f });
 }
-const dbDir = join(tmpdir(),"codesage-dogfood"); rmSync(dbDir,{recursive:true,force:true}); mkdirSync(dbDir,{recursive:true});
+const dbDir = join(tmpdir(),"engram-dogfood"); rmSync(dbDir,{recursive:true,force:true}); mkdirSync(dbDir,{recursive:true});
 const conn = GraphConnection.open(join(dbDir,"graph.db")); await initSchema(conn);
 const res = await indexKnowledgeDocs(conn, docs);
 const q = async (c)=> (await conn.query(c));

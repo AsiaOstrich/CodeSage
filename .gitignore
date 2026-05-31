@@ -16,4 +16,5 @@ coverage/
 *.log
 
 # MCP server local graph DB
+.engram/
 .codesage/

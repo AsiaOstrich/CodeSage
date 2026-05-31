@@ -39,5 +39,5 @@ const server = createHttpServer(async (req, res) => {
 
 server.listen(port, () => {
   // eslint-disable-next-line no-console
-  console.log(`CodeSage dev server listening on http://localhost:${port}`);
+  console.log(`EngramGraph dev server listening on http://localhost:${port}`);
 });

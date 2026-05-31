@@ -17,7 +17,7 @@ export function healthRoute(): Hono {
   const app = new Hono();
 
   app.get("/health", async (c) => {
-    const dir = mkdtempSync(join(tmpdir(), "codesage-health-"));
+    const dir = mkdtempSync(join(tmpdir(), "engram-health-"));
     const conn = GraphConnection.open(join(dir, "graph.db"));
     try {
       await initSchema(conn);

@@ -6,26 +6,26 @@ last_synced: 2026-05-30
 status: complete
 ---
 
-# CodeSage CLI
+# EngramGraph CLI
 
 > **語言：** [English](../../../docs/CLI.md) · 繁體中文 · [简体中文](../../zh-CN/docs/CLI.md)
 
-`codesage` CLI 會把一個 repo 索引進圖譜，並可從 shell 或 CI 查詢它。它是 library 與
+`egr` CLI 會把一個 repo 索引進圖譜，並可從 shell 或 CI 查詢它。它是 library 與
 MCP server 共用的同一批已測函式之上的薄層——無 LLM、確定性。
 
 ```
-codesage <command> [args] [options]
+egr <command> [args] [options]
 ```
 
 ## 圖譜資料庫位置
 
 每個命令都讀寫同一個 Kuzu 資料庫，路徑依以下優先序解析（XSPEC-245）：
 
-1. 環境變數 `CODESAGE_DB`（完整路徑，最高），否則
-2. `--graph <name>` → `./.codesage/<name>.db`，否則
-3. `--isolation git-branch`（或環境變數 `CODESAGE_ISOLATION=git-branch`）→ 每分支一個
-   `<git-common-dir>/codesage/<branch>.db`，否則
-4. 預設單一 `./.codesage/graph.db`。
+1. 環境變數 `ENGRAM_DB`（完整路徑，最高），否則
+2. `--graph <name>` → `./.engram/<name>.db`，否則
+3. `--isolation git-branch`（或環境變數 `ENGRAM_ISOLATION=git-branch`）→ 每分支一個
+   `<git-common-dir>/engram/<branch>.db`，否則
+4. 預設單一 `./.engram/graph.db`。
 
 目錄會在需要時建立，且每次開啟都會確保 schema 存在（冪等），因此首次 `index` 也能在空 repo 上運作。
 見下方[分支 / 專案隔離](#分支--專案隔離)。
@@ -35,7 +35,7 @@ codesage <command> [args] [options]
 | 選項 | 說明 |
 |------|------|
 | `--json` | 輸出原始 JSON，而非人類可讀摘要 |
-| `--graph <name>` | 使用 `./.codesage/<name>.db`——顯式命名的專案圖譜 |
+| `--graph <name>` | 使用 `./.engram/<name>.db`——顯式命名的專案圖譜 |
 | `--isolation <mode>` | `single`（預設）或 `git-branch`（每分支一張圖）|
 | `-h`、`--help` | 顯示用法 |
 | `-v`、`--version` | 顯示套件版本 |
@@ -49,14 +49,14 @@ codesage <command> [args] [options]
 （front-matter → `Spec` / `Decision` + `IMPACTS` / `SUPERSEDES`）。
 
 - 程式碼副檔名：`.ts .tsx .js .jsx .mts .cts .mjs .cjs`（排除 `.d.ts`）。
-- 略過的目錄：`node_modules`、`dist`、`.codesage`、`.git`、`coverage`。
+- 略過的目錄：`node_modules`、`dist`、`.engram`、`.git`、`coverage`。
 - `--clean`：索引前先清空圖譜資料。索引本是 upsert（MERGE）從不刪除，程式裡被移除的節點
   會殘留；`--clean` 從頭重建以清掉它。
 
 ```bash
-codesage index ./src
-codesage index . --docs
-codesage index ./src --clean   # 重建，清掉已刪除的節點
+egr index ./src
+egr index . --docs
+egr index ./src --clean   # 重建，清掉已刪除的節點
 ```
 
 輸出計數：`files`、`functions`、`classes`、`calls`，以及 `ambiguous`（被呼叫名稱比對到
@@ -68,7 +68,7 @@ codesage index ./src --clean   # 重建，清掉已刪除的節點
 （可遞移，最多到 `--depth`，預設 1）呼叫 `<symbol>` 的函式。「改這個會牽動什麼？」
 
 ```bash
-codesage callers callChain --depth 2
+egr callers callChain --depth 2
 ```
 
 ### `callees <symbol> [--depth N]`
@@ -76,7 +76,7 @@ codesage callers callChain --depth 2
 `<symbol>`（可遞移，最多到 `--depth`，預設 1）所呼叫的函式。
 
 ```bash
-codesage callees createMcpServer
+egr callees createMcpServer
 ```
 
 > `--depth` 會被夾到 `1..10`。符號以**名稱**比對；若名稱在多個檔案重複使用，所有相符者都會被納入。
@@ -87,8 +87,8 @@ codesage callees createMcpServer
 `SUPERSEDES` 鏈（`--max-hops`，預設 3，夾到 `1..10`），影響此 `Spec`。
 
 ```bash
-codesage impact XSPEC-237
-codesage impact XSPEC-237 --max-hops 5 --json
+egr impact XSPEC-237
+egr impact XSPEC-237 --max-hops 5 --json
 ```
 
 每筆結果顯示決策 `id`、抵達方式（`direct` | `supersedes`）與其 `title`。
@@ -104,8 +104,8 @@ codesage impact XSPEC-237 --max-hops 5 --json
   `Function` 則是 scope 限定的 id，如 `src/a.ts#a`）。
 
 ```bash
-codesage feedback test_fail "src/api/server.ts#createServer"
-codesage feedback human_fix DEC-070 --label Decision
+egr feedback test_fail "src/api/server.ts#createServer"
+egr feedback human_fix DEC-070 --label Decision
 ```
 
 印出 `before → after`，若 id/label 沒命中則印 "node not found"。
@@ -118,18 +118,18 @@ codesage feedback human_fix DEC-070 --label Decision
 - `--limit`：預設 10，夾到 `1..1000`。
 
 ```bash
-codesage top Function --limit 20
-codesage top Decision --json
+egr top Function --limit 20
+egr top Decision --json
 ```
 
 ### `gc [--dry-run]`
 
-回收已不存在分支的 per-branch 圖譜。檢查 `<git-common-dir>/codesage/`；當沒有任何現存
+回收已不存在分支的 per-branch 圖譜。檢查 `<git-common-dir>/engram/`；當沒有任何現存
 本地分支對應到 `<name>` 時，`<name>.db` 即為孤兒。`--dry-run` 只列不刪。非 git repo 時為 no-op。
 
 ```bash
-codesage gc --dry-run
-codesage gc
+egr gc --dry-run
+egr gc
 ```
 
 ### `serve [--port 3000]`
@@ -138,42 +138,42 @@ codesage gc
 長時間執行——自行管理生命週期。路由介面見 [API.md](./API.md)。
 
 ```bash
-codesage serve --port 3000
+egr serve --port 3000
 ```
 
 ### `mcp`
 
-以 stdio 執行 MCP server 供程式助理使用，與 `codesage-mcp` bin 相同。長時間執行。
+以 stdio 執行 MCP server 供程式助理使用，與 `egr-mcp` bin 相同。長時間執行。
 助理設定見 [MCP.md](./MCP.md)。
 
 ```bash
-codesage mcp
+egr mcp
 ```
 
 ## 分支 / 專案隔離
 
-預設所有命令共用同一個 `./.codesage/graph.db`。由於 `.codesage/` 被 gitignore 且待在工作樹，
+預設所有命令共用同一個 `./.engram/graph.db`。由於 `.engram/` 被 gitignore 且待在工作樹，
 **`git checkout` 不會換掉它**——不同分支共用同一張圖。三種隔離方式：
 
-1. **`--isolation git-branch`**（或在 shell 設一次 `CODESAGE_ISOLATION=git-branch`）：每個分支
-   各自 `<git-common-dir>/codesage/<branch>.db`，切分支後仍在、不污染工作樹。分支名會加 hash
-   後綴消毒，故 `feature/x` 與 `feature-x` 永不碰撞。用 `codesage gc` 回收已刪分支的圖。
+1. **`--isolation git-branch`**（或在 shell 設一次 `ENGRAM_ISOLATION=git-branch`）：每個分支
+   各自 `<git-common-dir>/engram/<branch>.db`，切分支後仍在、不污染工作樹。分支名會加 hash
+   後綴消毒，故 `feature/x` 與 `feature-x` 永不碰撞。用 `egr gc` 回收已刪分支的圖。
 2. **`--graph <name>`**：顯式、與 git 無關的專案圖——適合 detached HEAD 或分支命名隨意時。
-3. **`git worktree`**：每個分支各自 checkout 到獨立目錄，天然各有 `./.codesage/graph.db`——
+3. **`git worktree`**：每個分支各自 checkout 到獨立目錄，天然各有 `./.engram/graph.db`——
    零旗標、最乾淨,當分支對應長期獨立專案時最合適。
 
 > **MCP 注意**：MCP server 在啟動時綁定一張圖（路徑記到 stderr），**不會**跟著之後的
-> `git checkout`——要切換需重連/重啟 server（或啟動時帶 `--graph` / `CODESAGE_ISOLATION`）。
+> `git checkout`——要切換需重連/重啟 server（或啟動時帶 `--graph` / `ENGRAM_ISOLATION`）。
 
 ## CI 範例
 
 ```bash
-export CODESAGE_DB="$PWD/.codesage/graph.db"
-codesage index ./src --docs
+export ENGRAM_DB="$PWD/.engram/graph.db"
+egr index ./src --docs
 # 例如：當高風險符號出現新的呼叫者時讓 job 失敗，用 --json 查詢等。
-codesage callers paymentGateway --depth 3 --json > callers.json
+egr callers paymentGateway --depth 3 --json > callers.json
 ```
 
 ## 結束碼
 
-成功為 `0`；錯誤為 `1`（訊息以 `codesage: <message>` 寫到 stderr）。
+成功為 `0`；錯誤為 `1`（訊息以 `egr: <message>` 寫到 stderr）。

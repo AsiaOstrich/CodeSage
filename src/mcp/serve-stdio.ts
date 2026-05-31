@@ -1,6 +1,6 @@
 /**
- * Start the CodeSage MCP server over stdio. Shared by the `codesage-mcp` bin
- * (src/mcp/stdio.ts) and the `codesage mcp` CLI subcommand.
+ * Start the EngramGraph MCP server over stdio. Shared by the `egr-mcp` bin
+ * (src/mcp/stdio.ts) and the `egr mcp` CLI subcommand.
  *
  * The graph DB is resolved ONCE at startup (XSPEC-245 strategy "c"): a long-
  * lived server binds to one graph for its lifetime. To follow a `git checkout`
@@ -15,7 +15,7 @@ import { createMcpServer } from "./server.js";
 
 export async function startMcpStdio(dbPath?: string): Promise<void> {
   const path = resolveDbPath(dbPath ?? {});
-  process.stderr.write(`codesage-mcp: graph ${path}\n`);
+  process.stderr.write(`egr-mcp: graph ${path}\n`);
   const conn = await openGraph(path);
   const server = createMcpServer(conn);
   await server.connect(new StdioServerTransport());

@@ -6,11 +6,11 @@ last_synced: 2026-05-30
 status: complete
 ---
 
-# CodeSage MCP server
+# EngramGraph MCP server
 
 > **語言：** [English](../../../docs/MCP.md) · 繁體中文 · [简体中文](../../zh-CN/docs/MCP.md)
 
-CodeSage 內附一個 [Model Context Protocol](https://modelcontextprotocol.io)
+EngramGraph 內附一個 [Model Context Protocol](https://modelcontextprotocol.io)
 server（stdio 傳輸），讓任何支援 MCP 的程式助理都能把它當成**程式碼 + 知識圖譜記憶**。
 它是既有、已測查詢函式之上的薄 adapter——**無 LLM、確定性、免 Docker**。
 
@@ -18,26 +18,26 @@ server 以助理透過 stdio 啟動的本機子行程運行；沒有網路服務
 
 ## 設定
 
-server 執行檔為 `codesage-mcp`（等同 `codesage mcp`）。它從 `CODESAGE_DB`
-（預設 `./.codesage/graph.db`）讀取圖譜資料庫。
+server 執行檔為 `egr-mcp`（等同 `egr mcp`）。它從 `ENGRAM_DB`
+（預設 `./.engram/graph.db`）讀取圖譜資料庫。
 
 ### Claude Code
 
 ```bash
 # 使用已安裝的套件：
-claude mcp add codesage -- npx codesage-mcp
+claude mcp add egr -- npx egr-mcp
 
 # 或指向本機 checkout 已 build 的 bin：
-claude mcp add codesage -- node /abs/path/to/CodeSage/dist/mcp/stdio.js
+claude mcp add egr -- node /abs/path/to/EngramGraph/dist/mcp/stdio.js
 ```
 
 要固定圖譜位置，傳入環境變數：
 
 ```bash
-claude mcp add codesage --env CODESAGE_DB=/abs/path/.codesage/graph.db -- npx codesage-mcp
+claude mcp add egr --env ENGRAM_DB=/abs/path/.engram/graph.db -- npx egr-mcp
 ```
 
-以 `claude mcp list` 驗證 → `codesage … ✓ Connected`。
+以 `claude mcp list` 驗證 → `egr … ✓ Connected`。
 
 ### Codex / Cursor / Windsurf（及其他 MCP 用戶端）
 
@@ -47,10 +47,10 @@ command/args/env 都一樣：
 ```jsonc
 {
   "mcpServers": {
-    "codesage": {
+    "egr": {
       "command": "npx",
-      "args": ["codesage-mcp"],
-      "env": { "CODESAGE_DB": "/abs/path/.codesage/graph.db" }
+      "args": ["egr-mcp"],
+      "env": { "ENGRAM_DB": "/abs/path/.engram/graph.db" }
     }
   }
 }
@@ -80,7 +80,7 @@ command/args/env 都一樣：
 
 ## 備註
 
-- 連線是**長生命**；CodeSage 不會每次呼叫就關閉它（kuzu + tree-sitter 拆除注意事項——見
+- 連線是**長生命**；EngramGraph 不會每次呼叫就關閉它（kuzu + tree-sitter 拆除注意事項——見
   [CONTRIBUTING.md](../CONTRIBUTING.md)）。
-- 圖譜與 `codesage` CLI 及 REST server 共用：用任一模式索引一次，從另一個查詢。
+- 圖譜與 `egr` CLI 及 REST server 共用：用任一模式索引一次，從另一個查詢。
 - 信心度語意（`STEP` 0.25、下限 0.1）與完整 DDL 見 [API.md](./API.md)。

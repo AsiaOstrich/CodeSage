@@ -30,7 +30,7 @@ Impacts [[XSPEC-205]] and others.
 
 const DEC_069 = `---
 id: DEC-069
-title: CodeSage Architecture
+title: EngramGraph Architecture
 date: 2026-05-27
 ---
 # DEC-069
@@ -82,7 +82,7 @@ describe("KnowledgeGraph ingest + AC-3 impact analysis", () => {
   let conn: GraphConnection;
 
   beforeAll(async () => {
-    dir = mkdtempSync(join(tmpdir(), "codesage-kg-"));
+    dir = mkdtempSync(join(tmpdir(), "engram-kg-"));
     conn = GraphConnection.open(join(dir, "graph.db"));
     await initSchema(conn);
   });

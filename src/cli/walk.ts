@@ -1,5 +1,5 @@
 /**
- * Recursive file discovery for the `codesage index` command. Returns
+ * Recursive file discovery for the `egr index` command. Returns
  * `{ path, source }` tuples with repo-relative paths, skipping common
  * non-source dirs.
  */
@@ -7,7 +7,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 
-const SKIP_DIRS = new Set(["node_modules", "dist", ".codesage", ".git", "coverage"]);
+const SKIP_DIRS = new Set(["node_modules", "dist", ".engram", ".git", "coverage"]);
 
 /** Recursively collect files under `root` whose name ends with one of `exts`. */
 export function walkFiles(root: string, exts: readonly string[]): Array<{ path: string; source: string }> {
