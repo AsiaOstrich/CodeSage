@@ -12,11 +12,9 @@
 
 **License:** MIT · **Runtime:** Node.js ≥ 22 · **Graph DB:** [Kuzu](https://kuzudb.com/) (embedded, Cypher) · **No LLM required** (deterministic)
 
-EngramGraph is a general-purpose engine. **AsiaOstrich (VibeOps / UDS / XSPEC / DEC)
-is only a reference consumer** — none of those concepts are baked into the core.
-The defaults ("single repo + generic markdown + git signals") work out of the
-box for any project; AsiaOstrich-specific behaviour is supplied through
-pluggable adapters.
+EngramGraph is a general-purpose engine. The defaults ("single repo + generic
+markdown + git signals") work out of the box for any project; project-specific
+behaviour is supplied through pluggable adapters.
 
 ## Why a graph?
 
@@ -48,7 +46,7 @@ egr index ./src --docs
 egr callers myFunction --depth 2
 
 # 3. "Which decisions sit behind this spec?"
-egr impact XSPEC-237
+egr impact SPEC-001
 ```
 
 The graph DB lives at `ENGRAM_DB` (default `./.engram/graph.db`).
@@ -81,7 +79,7 @@ Or just `egr serve --port 3000`. API reference: **[docs/API.md](./docs/API.md)**
 
 | Mode | Entry | Use case |
 |------|-------|----------|
-| **Embedded** | `EmbeddedClient` | Same-process, zero HTTP overhead (e.g. VibeOps integration) |
+| **Embedded** | `EmbeddedClient` | Same-process, zero HTTP overhead (e.g. same-process integration) |
 | **REST** | `createServer()` (Hono) / `egr serve` | Standalone graph service; routes under `/graph/*` |
 | **MCP** | `egr-mcp` (stdio) / `egr mcp` | Plug-and-play for coding assistants (Claude Code, Codex, Cursor, ...) |
 
@@ -104,9 +102,8 @@ example flow: **[docs/MCP.md](./docs/MCP.md)**.
 
 | Layer | Contents | External usability |
 |-------|----------|--------------------|
-| **Generic Core** | CodeGraph (tree-sitter → graph), SAGE evolution, Kuzu abstraction, REST/MCP/Embedded modes, node-sdk | Zero AsiaOstrich dependency |
+| **Generic Core** | CodeGraph (tree-sitter → graph), SAGE evolution, Kuzu abstraction, REST/MCP/Embedded modes, node-sdk | Zero project-specific dependency |
 | **Pluggable Adapters (interfaces)** | (1) knowledge source (2) isolation model (3) SAGE signal source | Core ships interface + a generic default |
-| **AsiaOstrich Reference Adapter** | XSPEC/DEC/ADR parser, org/project isolation, VibeOps test signals | Reference instances (not in core) |
 
 ### The three adapters
 

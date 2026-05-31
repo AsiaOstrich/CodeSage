@@ -34,7 +34,7 @@ on embedded Kuzu, usable as a library, REST service, MCP server, or CLI.
   cross-file `CALLS` resolution; scope-qualified, stable function ids
   (`file#scope.name`); `callers` / `callees` / `callChain` queries.
 - **knowledge-graph** — front-matter markdown → `Spec` / `Decision` nodes with
-  `IMPACTS` / `SUPERSEDES` edges (AsiaOstrich reference adapter); `impactAnalysis`
+  `IMPACTS` / `SUPERSEDES` edges (reference adapter); `impactAnalysis`
   with multi-hop SUPERSEDES traversal.
 - **sage** — self-evolving confidence (`STEP` 0.25, range `[0.1, 1.0]`);
   `applyFeedback`, `feedbackForEventType`, `ingestFeedback`, `runEvolution`,
@@ -50,7 +50,7 @@ on embedded Kuzu, usable as a library, REST service, MCP server, or CLI.
   `impact_analysis`, `ingest_feedback`.
 - **cli** — standalone `egr` CLI: `index`, `callers`, `callees`, `impact`,
   `feedback`, `top`, `gc`, `serve`, `mcp` (`--json` / `--help` / `--version`).
-- **branch / project isolation** (XSPEC-245) — `--isolation git-branch` (or env
+- **branch / project isolation** — `--isolation git-branch` (or env
   `ENGRAM_ISOLATION=git-branch`) keeps a per-branch graph under
   `<git-common-dir>/engram/<branch>.db`; `--graph <name>` selects an explicit
   named graph; `index --clean` rebuilds to prune deleted nodes; `gc` removes

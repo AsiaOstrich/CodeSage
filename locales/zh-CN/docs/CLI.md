@@ -19,7 +19,7 @@ egr <command> [args] [options]
 
 ## 图数据库位置
 
-每个命令都读写同一个 Kuzu 数据库，路径按以下优先级解析（XSPEC-245）：
+每个命令都读写同一个 Kuzu 数据库，路径按以下优先级解析：
 
 1. 环境变量 `ENGRAM_DB`（完整路径，最高），否则
 2. `--graph <name>` → `./.engram/<name>.db`，否则
@@ -87,8 +87,8 @@ egr callees createMcpServer
 `SUPERSEDES` 链（`--max-hops`，默认 3，夹到 `1..10`），影响此 `Spec`。
 
 ```bash
-egr impact XSPEC-237
-egr impact XSPEC-237 --max-hops 5 --json
+egr impact SPEC-001
+egr impact SPEC-001 --max-hops 5 --json
 ```
 
 每条结果显示决策 `id`、抵达方式（`direct` | `supersedes`）与其 `title`。
@@ -100,12 +100,12 @@ egr impact XSPEC-237 --max-hops 5 --json
 - `<type>`：`test_fail`（负向、权重 1.0）、`test_pass`（正向、0.4）、
   `human_fix`（正向、0.6）、`status_change`（中性）。
 - `--label`：`Function`（默认）| `Spec` | `Decision` | `Doc`。
-- 节点以 **id** 匹配（`Decision` / `Spec` 的 id 例如 `DEC-1` / `XSPEC-1`；
+- 节点以 **id** 匹配（`Decision` / `Spec` 的 id 例如 `ADR-1` / `SPEC-1`；
   `Function` 则是作用域限定的 id，如 `src/a.ts#a`）。
 
 ```bash
 egr feedback test_fail "src/api/server.ts#createServer"
-egr feedback human_fix DEC-070 --label Decision
+egr feedback human_fix ADR-002 --label Decision
 ```
 
 打印 `before → after`，若 id/label 未命中则打印 "node not found"。

@@ -19,7 +19,7 @@ egr <command> [args] [options]
 
 ## 圖譜資料庫位置
 
-每個命令都讀寫同一個 Kuzu 資料庫，路徑依以下優先序解析（XSPEC-245）：
+每個命令都讀寫同一個 Kuzu 資料庫，路徑依以下優先序解析：
 
 1. 環境變數 `ENGRAM_DB`（完整路徑，最高），否則
 2. `--graph <name>` → `./.engram/<name>.db`，否則
@@ -87,8 +87,8 @@ egr callees createMcpServer
 `SUPERSEDES` 鏈（`--max-hops`，預設 3，夾到 `1..10`），影響此 `Spec`。
 
 ```bash
-egr impact XSPEC-237
-egr impact XSPEC-237 --max-hops 5 --json
+egr impact SPEC-001
+egr impact SPEC-001 --max-hops 5 --json
 ```
 
 每筆結果顯示決策 `id`、抵達方式（`direct` | `supersedes`）與其 `title`。
@@ -100,12 +100,12 @@ egr impact XSPEC-237 --max-hops 5 --json
 - `<type>`：`test_fail`（負向、權重 1.0）、`test_pass`（正向、0.4）、
   `human_fix`（正向、0.6）、`status_change`（中性）。
 - `--label`：`Function`（預設）| `Spec` | `Decision` | `Doc`。
-- 節點以 **id** 比對（`Decision` / `Spec` 的 id 例如 `DEC-1` / `XSPEC-1`；
+- 節點以 **id** 比對（`Decision` / `Spec` 的 id 例如 `ADR-1` / `SPEC-1`；
   `Function` 則是 scope 限定的 id，如 `src/a.ts#a`）。
 
 ```bash
 egr feedback test_fail "src/api/server.ts#createServer"
-egr feedback human_fix DEC-070 --label Decision
+egr feedback human_fix ADR-002 --label Decision
 ```
 
 印出 `before → after`，若 id/label 沒命中則印 "node not found"。

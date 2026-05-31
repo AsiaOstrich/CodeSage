@@ -20,9 +20,8 @@ status: complete
 
 **许可：** MIT · **运行环境：** Node.js ≥ 22 · **图数据库：** [Kuzu](https://kuzudb.com/)（嵌入式、Cypher）· **无需 LLM**（确定性）
 
-EngramGraph 是通用引擎。**AsiaOstrich（VibeOps / UDS / XSPEC / DEC）只是一个参考使用者**
-——这些概念都不会内建于核心。默认行为（“单一 repo + 通用 markdown + git 信号”）对任何项目
-开箱即用；AsiaOstrich 专属行为则通过可插拔的 adapter 提供。
+EngramGraph 是通用引擎。默认行为（“单一 repo + 通用 markdown + git 信号”）对任何项目
+开箱即用；项目专属行为则通过可插拔的 adapter 提供。
 
 ## 为什么用图谱？
 
@@ -53,7 +52,7 @@ egr index ./src --docs
 egr callers myFunction --depth 2
 
 # 3.“这个 spec 背后有哪些决策？”
-egr impact XSPEC-237
+egr impact SPEC-001
 ```
 
 图数据库位于 `ENGRAM_DB`（默认 `./.engram/graph.db`）。
@@ -86,7 +85,7 @@ const app = createServer({ connection: conn });   // Hono app；路由在 /graph
 
 | 模式 | 入口 | 使用场景 |
 |------|------|----------|
-| **嵌入式（Embedded）** | `EmbeddedClient` | 同进程、零 HTTP 开销（如 VibeOps 集成）|
+| **嵌入式（Embedded）** | `EmbeddedClient` | 同进程、零 HTTP 开销（如同进程集成）|
 | **REST** | `createServer()`（Hono）/ `egr serve` | 独立图谱服务；路由在 `/graph/*` 下 |
 | **MCP** | `egr-mcp`（stdio）/ `egr mcp` | 编程助手即插即用（Claude Code、Codex、Cursor……）|
 
@@ -108,9 +107,8 @@ claude mcp add egr -- npx egr-mcp
 
 | 层级 | 内容 | 对外可用性 |
 |------|------|------------|
-| **通用 Core** | CodeGraph（tree-sitter → 图谱）、SAGE 演化、Kuzu 抽象、REST/MCP/Embedded 模式、node-sdk | 零 AsiaOstrich 依赖 |
+| **通用 Core** | CodeGraph（tree-sitter → 图谱）、SAGE 演化、Kuzu 抽象、REST/MCP/Embedded 模式、node-sdk | 零项目专属依赖 |
 | **可插拔 Adapter（接口）** |（1）知识来源（2）隔离模型（3）SAGE 信号来源 | Core 提供接口 + 一个通用默认 |
-| **AsiaOstrich 参考 Adapter** | XSPEC/DEC/ADR 解析、org/project 隔离、VibeOps 测试信号 | 参考实例（不在核心内）|
 
 ### 三个 adapter
 

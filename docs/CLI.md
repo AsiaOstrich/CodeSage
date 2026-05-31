@@ -13,7 +13,7 @@ egr <command> [args] [options]
 ## Graph DB location
 
 Every command reads/writes one Kuzu database. Its path is resolved in this
-priority order (XSPEC-245):
+priority order:
 
 1. env `ENGRAM_DB` (a full path; highest), else
 2. `--graph <name>` → `./.engram/<name>.db`, else
@@ -87,8 +87,8 @@ Decisions in the impact chain of a spec — which `Decision` nodes affect this
 (`--max-hops`, default 3, clamped to `1..10`).
 
 ```bash
-egr impact XSPEC-237
-egr impact XSPEC-237 --max-hops 5 --json
+egr impact SPEC-001
+egr impact SPEC-001 --max-hops 5 --json
 ```
 
 Each result row shows the decision `id`, how it was reached (`direct` |
@@ -102,12 +102,12 @@ Evolve a node's SAGE confidence from one feedback event.
   `human_fix` (positive, 0.6), `status_change` (neutral).
 - `--label`: `Function` (default) | `Spec` | `Decision` | `Doc`.
 - The node is matched by **id** (for `Decision` / `Spec` the id is e.g.
-  `DEC-1` / `XSPEC-1`; for `Function` it is the scope-qualified id such as
+  `ADR-1` / `SPEC-1`; for `Function` it is the scope-qualified id such as
   `src/a.ts#a`).
 
 ```bash
 egr feedback test_fail "src/api/server.ts#createServer"
-egr feedback human_fix DEC-070 --label Decision
+egr feedback human_fix ADR-002 --label Decision
 ```
 
 Prints `before → after`, or "node not found" if the id/label miss.

@@ -10,8 +10,8 @@ status: complete
 
 > **語言：** [English](../../CONTRIBUTING.md) · 繁體中文 · [简体中文](../zh-CN/CONTRIBUTING.md)
 
-感謝你對 EngramGraph 感興趣。它採 MIT 授權且為通用引擎——請**讓核心保持不含 AsiaOstrich
-專屬概念**（XSPEC/DEC/org/VibeOps 屬於參考 adapter，不屬於核心）。
+感謝你對 EngramGraph 感興趣。它採 MIT 授權且為通用引擎——請**讓核心保持通用**：
+專案專屬慣例（自訂 id 規則、多租戶隔離、客製訊號來源）屬於 adapter，不屬於核心。
 
 ## 開發環境設定
 

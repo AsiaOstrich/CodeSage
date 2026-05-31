@@ -3,8 +3,8 @@
 > **Language:** English · [繁體中文](./locales/zh-TW/CONTRIBUTING.md) · [简体中文](./locales/zh-CN/CONTRIBUTING.md)
 
 Thanks for your interest in EngramGraph. It is MIT-licensed and general-purpose —
-keep the **core free of AsiaOstrich-specific concepts** (XSPEC/DEC/org/VibeOps
-belong in reference adapters, not the core).
+keep the **core generic**: project-specific conventions (custom id schemes,
+multi-tenant isolation, bespoke signal sources) belong in adapters, not the core.
 
 ## Dev setup
 

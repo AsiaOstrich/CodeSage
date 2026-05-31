@@ -69,8 +69,8 @@ Every tool returns a text content block of JSON; on failure it returns
    source files, and `index_docs` with its spec/decision markdown.
 2. **Ask "what calls `execute`?"** → `call_chain` with
    `{ symbol: "execute", direction: "callers", depth: 2 }` returns the callers.
-3. **Ask "which decisions sit behind XSPEC-237?"** → `impact_analysis` with
-   `{ nodeId: "XSPEC-237" }` returns e.g. `[DEC-069, DEC-070]`.
+3. **Ask "which decisions sit behind SPEC-001?"** → `impact_analysis` with
+   `{ nodeId: "SPEC-001" }` returns e.g. `[ADR-001, ADR-002]`.
 4. **Record an outcome**: after a test fails for a function, `ingest_feedback`
    with `{ nodeId, type: "test_fail" }` lowers that node's confidence, so the
    next ranked query surfaces the more-reinforced nodes first.

@@ -73,8 +73,8 @@ command/args/env 都一樣：
 1. **索引** repo：助理以專案原始碼呼叫 `index_code`，以其 spec/decision markdown 呼叫 `index_docs`。
 2. **問「誰呼叫 `execute`？」** → 以 `{ symbol: "execute", direction: "callers", depth: 2 }`
    呼叫 `call_chain`，回傳呼叫者。
-3. **問「XSPEC-237 背後有哪些決策？」** → 以 `{ nodeId: "XSPEC-237" }` 呼叫
-   `impact_analysis`，回傳如 `[DEC-069, DEC-070]`。
+3. **問「SPEC-001 背後有哪些決策？」** → 以 `{ nodeId: "SPEC-001" }` 呼叫
+   `impact_analysis`，回傳如 `[ADR-001, ADR-002]`。
 4. **記錄結果**：某函式測試失敗後，以 `{ nodeId, type: "test_fail" }` 呼叫
    `ingest_feedback` 降低該節點信心度，使下次的排名查詢優先浮現被更多次強化的節點。
 

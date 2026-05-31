@@ -73,8 +73,8 @@ command/args/env 都一样：
 1. **索引** repo：助手以项目源代码调用 `index_code`，以其 spec/decision markdown 调用 `index_docs`。
 2. **问“谁调用 `execute`？”** → 以 `{ symbol: "execute", direction: "callers", depth: 2 }`
    调用 `call_chain`，返回调用者。
-3. **问“XSPEC-237 背后有哪些决策？”** → 以 `{ nodeId: "XSPEC-237" }` 调用
-   `impact_analysis`，返回如 `[DEC-069, DEC-070]`。
+3. **问“SPEC-001 背后有哪些决策？”** → 以 `{ nodeId: "SPEC-001" }` 调用
+   `impact_analysis`，返回如 `[ADR-001, ADR-002]`。
 4. **记录结果**：某函数测试失败后，以 `{ nodeId, type: "test_fail" }` 调用
    `ingest_feedback` 降低该节点置信度，使下次的排名查询优先浮现被更多次强化的节点。
 

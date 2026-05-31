@@ -100,8 +100,9 @@ path extension when omitted.
 
 ## knowledge-graph — spec/decision markdown → graph
 
-The AsiaOstrich **reference** adapter: XSPEC → `Spec`, DEC/ADR → `Decision`,
-relationship front-matter + `[[ref]]` links → `IMPACTS` / `SUPERSEDES`.
+A **reference** knowledge adapter: spec documents → `Spec`, decision / ADR
+documents → `Decision`, relationship front-matter + `[[ref]]` links →
+`IMPACTS` / `SUPERSEDES`.
 
 - `indexKnowledgeDocs(conn, docs: KnowledgeDoc[]): Promise<KnowledgeIndexResult>`
   — `KnowledgeDoc = { content, fallbackId? }`; result counts
@@ -156,7 +157,7 @@ Constants `STEP`, `MIN_CONFIDENCE`, `MAX_CONFIDENCE` are exported.
   `extractRefs`; type `MarkdownDoc`.
 - **Isolation model** — `IsolationModel.dbPath(ctx?: IsolationContext): string`.
   `SingleRepoIsolation` (default, one `graph.db`) | `OrgProjectIsolation`
-  (`org-{orgId}/project-{projectId}/graph.db`) | `GitBranchIsolation` (XSPEC-245;
+  (`org-{orgId}/project-{projectId}/graph.db`) | `GitBranchIsolation` (
   per-branch `<git-common-dir>/engram/<branch>.db`, with a fallback model).
 - **Signal source** — `SignalSource → FeedbackEvent[]`; `GitHistorySignalSource`,
   `TestExitCodeSignalSource`. Types `FeedbackEvent`, `FeedbackSignal`.
@@ -196,5 +197,5 @@ class EmbeddedClient {
 Defaults to `SingleRepoIsolation`. Zero HTTP overhead — wraps `GraphConnection`
 directly for same-process consumers. Beyond raw `query`, the high-level facade
 exposes the same operations as the REST/MCP surfaces, so embedded consumers
-(e.g. VibeOps, XSPEC-244) never need to hold the raw `GraphConnection`. The
+(e.g. an in-process host application) never need to hold the raw `GraphConnection`. The
 connection is long-lived — `init()` is idempotent; `close()` is shutdown-only.

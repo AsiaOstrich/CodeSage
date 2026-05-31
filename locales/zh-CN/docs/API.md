@@ -103,7 +103,7 @@ tree-sitter 将 `.ts` / `.tsx` / `.js` 解析为 `Function` / `Class` / `Module`
 
 ## knowledge-graph — spec/decision markdown → 图谱
 
-AsiaOstrich **参考** adapter：XSPEC → `Spec`、DEC/ADR → `Decision`、
+一个 **参考** 知识 adapter：spec 文档 → `Spec`、decision / ADR 文档 → `Decision`、
 关系 front-matter + `[[ref]]` 链接 → `IMPACTS` / `SUPERSEDES`。
 
 - `indexKnowledgeDocs(conn, docs: KnowledgeDoc[]): Promise<KnowledgeIndexResult>`
@@ -157,7 +157,7 @@ AsiaOstrich **参考** adapter：XSPEC → `Spec`、DEC/ADR → `Decision`、
   `extractRefs`；类型 `MarkdownDoc`。
 - **隔离模型** — `IsolationModel.dbPath(ctx?: IsolationContext): string`。
   `SingleRepoIsolation`（默认，单一 `graph.db`）| `OrgProjectIsolation`
-  （`org-{orgId}/project-{projectId}/graph.db`）| `GitBranchIsolation`（XSPEC-245；
+  （`org-{orgId}/project-{projectId}/graph.db`）| `GitBranchIsolation`（
   每分支 `<git-common-dir>/engram/<branch>.db`，附 fallback 模型）。
 - **信号来源** — `SignalSource → FeedbackEvent[]`；`GitHistorySignalSource`、
   `TestExitCodeSignalSource`。类型 `FeedbackEvent`、`FeedbackSignal`。
@@ -195,5 +195,5 @@ class EmbeddedClient {
 ```
 
 默认 `SingleRepoIsolation`。零 HTTP 开销——直接包住 `GraphConnection` 供同进程使用者使用。
-除原始 `query` 外，高级 facade 暴露与 REST/MCP 相同的操作，因此嵌入使用者（如 VibeOps、
-XSPEC-244）无需持有原始 `GraphConnection`。连接为长生命周期——`init()` 幂等；`close()` 仅供 shutdown。
+除原始 `query` 外，高级 facade 暴露与 REST/MCP 相同的操作，因此嵌入式宿主应用无需持有
+原始 `GraphConnection`。连接为长生命周期——`init()` 幂等；`close()` 仅供 shutdown。
