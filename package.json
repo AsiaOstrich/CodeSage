@@ -39,7 +39,7 @@
   "scripts": {
     "build": "tsup",
     "prepare": "tsup",
-    "health": "node poc/health-check.mjs",
+    "health": "node scripts/health-check.mjs",
     "mcp": "node dist/mcp/stdio.js",
     "test": "vitest run",
     "test:watch": "vitest",

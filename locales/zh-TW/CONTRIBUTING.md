@@ -29,7 +29,7 @@ npm install --legacy-peer-deps
 npm run build       # tsup → dist/（ESM + CJS、.d.ts、sourcemap）；也會作為 `prepare` 執行
 npm run typecheck   # tsc --noEmit，0 錯誤
 npm test            # vitest run
-npm run health      # poc/health-check.mjs — 6 模組煙霧測試
+npm run health      # scripts/health-check.mjs — 6 模組煙霧測試
 ```
 
 不 build 直接從原始碼試 CLI：
@@ -63,7 +63,7 @@ src/mcp/              MCP server + stdio bin
 src/cli/              egr CLI（entry + run + walk）
 clients/node-sdk/     EmbeddedClient
 test/                 vitest 測試（每模組一套）
-poc/                  實驗 + 健康檢查（不發布到 npm）
+scripts/              健康檢查 + 開發腳本（不發布到 npm）
 ```
 
 ## 慣例

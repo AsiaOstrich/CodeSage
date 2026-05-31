@@ -22,7 +22,7 @@ npm install --legacy-peer-deps
 npm run build       # tsup → dist/ (ESM + CJS, .d.ts, sourcemaps); also runs as `prepare`
 npm run typecheck   # tsc --noEmit, 0 errors
 npm test            # vitest run
-npm run health      # poc/health-check.mjs — 6-module smoke
+npm run health      # scripts/health-check.mjs — 6-module smoke
 ```
 
 Try the CLI from source without building:
@@ -58,7 +58,7 @@ src/mcp/              MCP server + stdio bin
 src/cli/              egr CLI (entry + run + walk)
 clients/node-sdk/     EmbeddedClient
 test/                 vitest suites (one per module)
-poc/                  experiments + health check (not published to npm)
+scripts/              health check + dev scripts (not published to npm)
 ```
 
 ## Conventions
