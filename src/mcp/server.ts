@@ -28,7 +28,7 @@ const fail = (message: string) => ({
 /**
  * Register EngramGraph's tools on an MCP server backed by a graph connection.
  * The connection is long-lived (caller owns its lifecycle); never closed
- * per-call (kuzu+tree-sitter teardown caveat).
+ * per-call (ryugraph+tree-sitter teardown caveat).
  */
 export function createMcpServer(conn: GraphConnection): McpServer {
   const server = new McpServer({ name: "engramgraph", version: "0.1.0" });

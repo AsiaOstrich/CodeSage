@@ -4,6 +4,23 @@ All notable changes to `engramgraph` are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-06-12
+
+### Security
+
+- Replaced abandoned `kuzu@0.11.3` with `ryugraph@25.9.1` (active Kuzu fork
+  by Predictable Labs). Eliminates 2 of 5 high-severity vulnerabilities that
+  were introduced via kuzu's deprecated transitive deps (`npmlog`, `gauge`,
+  `are-we-there-yet`). Remaining 3 vulnerabilities (`cmake-js → tar`) are
+  a build-time concern shared with all native-addon packages and have no
+  upstream fix available yet.
+
+### Changed
+
+- `KuzuValue` type renamed to `RyuValue` in all public APIs
+  (`GraphConnection.query()`, `EmbeddedClient.query()`).
+  Update imports: `import type { RyuValue } from "ryugraph"`.
+
 ## [0.2.0] — 2026-05-31
 
 Positions EngramGraph as a standalone, general-purpose engine — docs and source

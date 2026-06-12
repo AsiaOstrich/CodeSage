@@ -5,10 +5,10 @@
  * structural contracts shared across CodeGraph, KnowledgeGraph and SAGE layers.
  */
 
-import type { KuzuValue } from "kuzu";
+import type { RyuValue } from "ryugraph";
 
-/** A row returned by a Kuzu query, after `getAll()`. */
-export type GraphRow = Record<string, KuzuValue>;
+/** A row returned by a graph query, after `getAll()`. */
+export type GraphRow = Record<string, RyuValue>;
 
 // --- CodeGraph nodes ---
 

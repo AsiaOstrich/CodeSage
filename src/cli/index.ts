@@ -179,7 +179,7 @@ async function main(): Promise<void> {
     default:
       throw new Error(`unknown command: ${cmd}\n\n${HELP}`);
   }
-  process.exit(0); // do not await conn.close() (kuzu+tree-sitter teardown caveat)
+  process.exit(0); // do not await conn.close() (ryugraph+tree-sitter teardown caveat)
 }
 
 main().catch((err) => {

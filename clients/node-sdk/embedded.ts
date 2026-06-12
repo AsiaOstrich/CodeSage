@@ -6,7 +6,7 @@ import {
   type IsolationContext,
 } from "../../src/adapters/isolation.js";
 import type { GraphRow } from "../../src/graph-db/types.js";
-import type { KuzuValue } from "kuzu";
+import type { RyuValue } from "ryugraph";
 
 import {
   indexProject,
@@ -47,7 +47,7 @@ import {
  * REST/MCP surfaces (index, call-chain, impact-analysis, feedback) so embedded
  * consumers never need to hold the raw {@link GraphConnection}. The connection
  * is long-lived: `init()` is idempotent and `close()` is only for shutdown
- * (kuzu + tree-sitter teardown caveat — never close mid-process).
+ * (ryugraph + tree-sitter teardown caveat — never close mid-process).
  */
 export class EmbeddedClient {
   private conn: GraphConnection | null = null;
@@ -77,7 +77,7 @@ export class EmbeddedClient {
   /** Run a Cypher query against the embedded graph. */
   async query(
     cypher: string,
-    params?: Record<string, KuzuValue>,
+    params?: Record<string, RyuValue>,
   ): Promise<GraphRow[]> {
     return (await this.ready()).query(cypher, params);
   }

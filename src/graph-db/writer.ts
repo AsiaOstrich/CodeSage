@@ -11,7 +11,7 @@
 
 import type { GraphConnection } from "./connection.js";
 import type { GraphEdge, GraphFragment, GraphNode } from "./types.js";
-import type { KuzuValue } from "kuzu";
+import type { RyuValue } from "ryugraph";
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
@@ -23,11 +23,11 @@ function assertSafeKey(key: string): void {
 
 async function mergeNode(conn: GraphConnection, node: GraphNode): Promise<void> {
   const keys = Object.keys(node.properties);
-  const params: Record<string, KuzuValue> = { id: node.id };
+  const params: Record<string, RyuValue> = { id: node.id };
   const assignments: string[] = [];
   for (const key of keys) {
     assertSafeKey(key);
-    params[key] = node.properties[key] as KuzuValue;
+    params[key] = node.properties[key] as RyuValue;
     assignments.push(`n.${key} = $${key}`);
   }
   const setClause = assignments.length > 0 ? ` SET ${assignments.join(", ")}` : "";
@@ -37,12 +37,12 @@ async function mergeNode(conn: GraphConnection, node: GraphNode): Promise<void> 
 async function mergeEdge(conn: GraphConnection, edge: GraphEdge): Promise<void> {
   const props = edge.properties ?? {};
   const keys = Object.keys(props);
-  const params: Record<string, KuzuValue> = { from: edge.from, to: edge.to };
+  const params: Record<string, RyuValue> = { from: edge.from, to: edge.to };
   const assignments: string[] = [];
   for (const key of keys) {
     assertSafeKey(key);
     // prefix to avoid colliding with $from / $to
-    params[`p_${key}`] = props[key] as KuzuValue;
+    params[`p_${key}`] = props[key] as RyuValue;
     assignments.push(`r.${key} = $p_${key}`);
   }
   const match = `MATCH (a:${edge.fromLabel} {id: $from}), (b:${edge.toLabel} {id: $to})`;

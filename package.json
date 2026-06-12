@@ -1,6 +1,6 @@
 {
   "name": "engramgraph",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Open-source code + knowledge graph memory engine (SAGE + CodeGraph). AsiaOstrich is only a reference consumer.",
   "license": "MIT",
   "author": "AsiaOstrich",
@@ -52,7 +52,7 @@
     "code-graph",
     "knowledge-graph",
     "code-memory",
-    "kuzu",
+    "ryugraph",
     "graph-memory",
     "sage",
     "tree-sitter"
@@ -60,7 +60,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "hono": "^4.6.0",
-    "kuzu": "^0.11.3",
+    "ryugraph": "^25.9.1",
     "tree-sitter": "^0.22.4",
     "tree-sitter-javascript": "^0.23.1",
     "tree-sitter-typescript": "^0.23.2"

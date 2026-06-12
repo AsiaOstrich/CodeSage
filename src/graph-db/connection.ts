@@ -1,5 +1,5 @@
-import { Database, Connection } from "kuzu";
-import type { KuzuValue, QueryResult } from "kuzu";
+import { Database, Connection } from "ryugraph";
+import type { RyuValue, QueryResult } from "ryugraph";
 
 import type { GraphRow } from "./types.js";
 
@@ -15,7 +15,7 @@ function lastResult(result: QueryResult | QueryResult[]): QueryResult {
  * always resolves to plain rows (`Record<string, unknown>[]`), so callers never
  * touch the raw QueryResult cursor API.
  *
- * Verified against kuzu@0.11.3.
+ * Verified against ryugraph@25.9.1 (kuzu fork).
  */
 export class GraphConnection {
   private readonly db: Database;
@@ -40,7 +40,7 @@ export class GraphConnection {
    */
   async query(
     cypher: string,
-    params?: Record<string, KuzuValue>,
+    params?: Record<string, RyuValue>,
   ): Promise<GraphRow[]> {
     if (this.closed) {
       throw new Error("GraphConnection is closed");
@@ -59,7 +59,7 @@ export class GraphConnection {
   /** Run a statement when the result set is irrelevant (DDL, writes). */
   async execute(
     cypher: string,
-    params?: Record<string, KuzuValue>,
+    params?: Record<string, RyuValue>,
   ): Promise<void> {
     await this.query(cypher, params);
   }
