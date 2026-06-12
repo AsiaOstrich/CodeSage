@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 
 - Replaced abandoned `kuzu@0.11.3` with `ryugraph@25.9.1` (active Kuzu fork
-  by Predictable Labs). Eliminates 2 of 5 high-severity vulnerabilities that
+  by Predictable Labs). Eliminates the high-severity vulnerabilities that
   were introduced via kuzu's deprecated transitive deps (`npmlog`, `gauge`,
-  `are-we-there-yet`). Remaining 3 vulnerabilities (`cmake-js → tar`) are
-  a build-time concern shared with all native-addon packages and have no
-  upstream fix available yet.
+  `are-we-there-yet`).
+- Added an npm `overrides` entry forcing `cmake-js@^8.0.0`, lifting the
+  transitive `tar` to a patched version (ryugraph pins `cmake-js@^7.3.0`,
+  whose `tar@6.2.1` carries multiple high-severity path-traversal CVEs).
+  `npm audit` is now clean (0 vulnerabilities) in this repo. Note that npm
+  `overrides` do not propagate to downstream consumers — projects depending
+  on `engramgraph` should add the same override until ryugraph bumps
+  cmake-js upstream.
 
 ### Changed
 

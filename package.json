@@ -65,6 +65,9 @@
     "tree-sitter-javascript": "^0.23.1",
     "tree-sitter-typescript": "^0.23.2"
   },
+  "overrides": {
+    "cmake-js": "^8.0.0"
+  },
   "devDependencies": {
     "@types/node": "^24.0.0",
     "tsup": "^8.0.0",
